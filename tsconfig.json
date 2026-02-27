@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "strict": true,
+    "outDir": "./.tmp/build/visual",
+    "rootDir": ".",
+    "lib": ["ES2020", "DOM"],
+    "types": ["d3"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", ".tmp"],
+  "files": ["src/visual.ts"]
+}

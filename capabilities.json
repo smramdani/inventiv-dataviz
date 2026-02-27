@@ -1,0 +1,45 @@
+{
+  "dataRoles": [
+    {
+      "displayName": "From (Entity / Shareholder)",
+      "name": "fromNode",
+      "kind": "Grouping"
+    },
+    {
+      "displayName": "To (Entity / Shareholder)",
+      "name": "toNode",
+      "kind": "Grouping"
+    },
+    {
+      "displayName": "Number of Shares",
+      "name": "shares",
+      "kind": "Measure"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "conditions": [],
+      "table": {
+        "rows": {
+          "select": [
+            { "bind": { "to": "fromNode" } },
+            { "bind": { "to": "toNode" } },
+            { "bind": { "to": "shares" } }
+          ]
+        }
+      }
+    }
+  ],
+  "objects": {
+    "explore": {
+      "displayName": "Explore",
+      "properties": {
+        "startNode": {
+          "displayName": "Start node (PoC uses built-in data)",
+          "type": { "text": true }
+        }
+      }
+    }
+  },
+  "privileges": []
+}

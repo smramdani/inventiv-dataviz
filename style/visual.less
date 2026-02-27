@@ -1,0 +1,40 @@
+.explore-hint {
+  z-index: 10;
+}
+
+svg {
+  overflow: visible;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.links line {
+  pointer-events: none;
+}
+
+.nodes g {
+  pointer-events: all;
+  cursor: grab;
+}
+
+.nodes g:active {
+  cursor: grabbing;
+}
+
+.nodes g:hover circle {
+  stroke: #333;
+  stroke-width: 3;
+}
+
+.zoom-toolbar button {
+  cursor: pointer;
+  padding: 4px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-family: inherit;
+}
+
+.zoom-toolbar button:hover {
+  background: #f0f0f0;
+}
