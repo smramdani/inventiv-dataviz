@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventiv DataViz – Hello World</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1rem; }
+    h1 { font-size: 1.25rem; }
+    #graph { width: 100%; height: 400px; border: 1px solid #eee; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Hello World – Generic Graph</h1>
+  <p>One script tag, one container, one function call. No build step.</p>
+  <div id="graph"></div>
+
+  <!-- 1) Load the widget bundle (build first: npm run build:web) -->
+  <script src="../dist/inventiv-dataviz.js"></script>
+  <script>
+    // 2) Prepare minimal data: rows with source, target, weight
+    var data = {
+      rows: [
+        { source: "A", target: "B", weight: 10 },
+        { source: "B", target: "C", weight: 20 },
+        { source: "A", target: "C", weight: 5 }
+      ]
+    };
+
+    // 3) Create the graph in your container
+    var container = document.getElementById("graph");
+    var handle = InventivDataviz.createGenericGraph(container, data);
+
+    // Optional: update or destroy later
+    // handle.updateData(newData);
+    // handle.destroy();
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "dataRoles": [
+    { "displayName": "Source", "name": "source", "kind": "Grouping" },
+    { "displayName": "Target", "name": "target", "kind": "Grouping" },
+    { "displayName": "Weight", "name": "weight", "kind": "Measure" }
+  ],
+  "dataViewMappings": [{
+    "conditions": [],
+    "table": {
+      "rows": {
+        "select": [
+          { "bind": { "to": "source" } },
+          { "bind": { "to": "target" } },
+          { "bind": { "to": "weight" } }
+        ]
+      }
+    }
+  }],
+  "objects": {},
+  "privileges": []
+}

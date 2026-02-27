@@ -8,8 +8,11 @@
     "start": "pbiviz start",
     "package": "pbiviz package",
     "lint": "npx eslint .",
-    "test:local": "node scripts/serve-test.js",
-    "build:test": "node scripts/build-test-bundle.js"
+    "build:demo": "node scripts/build-demo.js",
+    "demo": "node scripts/serve-demo.js",
+    "build:test": "node scripts/build-demo.js",
+    "test:local": "node scripts/serve-demo.js",
+    "build:web": "node scripts/build-web-bundle.js"
   },
   "dependencies": {
     "@types/d3": "7.4.3",

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventiv DataViz – Demo Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --inv-bg: #0f1419;
+      --inv-surface: #1a2332;
+      --inv-surface-hover: #243044;
+      --inv-border: #2d3a4d;
+      --inv-text: #e6edf3;
+      --inv-text-muted: #8b9cb3;
+      --inv-accent: #3b82f6;
+      --inv-accent-hover: #2563eb;
+      --inv-success: #22c55e;
+      --inv-card-bg: #ffffff;
+      --inv-radius: 10px;
+      --inv-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+    body {
+      margin: 0;
+      font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--inv-bg);
+      color: var(--inv-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-header {
+      background: linear-gradient(135deg, var(--inv-surface) 0%, #15202b 100%);
+      border-bottom: 1px solid var(--inv-border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .app-header .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, var(--inv-text) 0%, var(--inv-text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .app-header .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--inv-accent);
+      background: rgba(59, 130, 246, 0.15);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+    .app-header .tagline {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: var(--inv-text-muted);
+    }
+    .main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+    .nav {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--inv-surface);
+      border-right: 1px solid var(--inv-border);
+      padding: 1rem 0;
+    }
+    .nav-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--inv-text-muted);
+      padding: 0 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      margin: 0 0.5rem;
+      border-radius: var(--inv-radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--inv-text-muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-item:hover {
+      background: var(--inv-surface-hover);
+      color: var(--inv-text);
+    }
+    .nav-item.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--inv-accent);
+    }
+    .nav-item .icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: var(--inv-border);
+      flex-shrink: 0;
+    }
+    .nav-item.active .icon {
+      background: var(--inv-accent);
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--inv-card-bg);
+      margin: 1rem;
+      border-radius: var(--inv-radius);
+      box-shadow: var(--inv-shadow);
+      overflow: hidden;
+    }
+    .content-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fafafa;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+    .content-header strong { color: #111827; }
+    #visual {
+      flex: 1;
+      min-height: 400px;
+      background: #fff;
+    }
+    #error {
+      padding: 1rem 1.25rem;
+      color: #b91c1c;
+      background: #fef2f2;
+      display: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <span class="logo">Inventiv DataViz</span>
+    <span class="badge">Demo</span>
+    <span class="tagline">Graph widgets for Web & Power BI</span>
+  </header>
+  <main class="main">
+    <nav class="nav">
+      <div class="nav-title">Demos</div>
+      <div class="nav-item active" data-demo="legal-entities">
+        <span class="icon"></span>
+        Legal Entities Graph
+      </div>
+      <div class="nav-item" data-demo="legal-entities-custom">
+        <span class="icon"></span>
+        Legal Entities (custom style)
+      </div>
+      <div class="nav-item" data-demo="generic-graph">
+        <span class="icon"></span>
+        Generic Graph
+      </div>
+      <div class="nav-item" data-demo="generic-graph-custom">
+        <span class="icon"></span>
+        Generic Graph (custom style)
+      </div>
+      <div class="nav-item" data-demo="species">
+        <span class="icon"></span>
+        Species & taxonomy
+      </div>
+      <div class="nav-item" data-demo="sentence">
+        <span class="icon"></span>
+        Sentence / POS
+      </div>
+    </nav>
+    <section class="content">
+      <div class="content-header" id="content-header">
+        <strong>Legal Entities & Shareholders Graph</strong> — Tech / conglomerate example (Alphabet, Meta, Tesla, SpaceX, etc.). Click a node to explore.
+      </div>
+      <div id="visual"></div>
+      <div id="error"></div>
+    </section>
+  </main>
+
+  <script>
+    (function() {
+      window.powerbi = window.powerbi || {};
+      window.powerbi.visuals = window.powerbi.visuals || {};
+      window.powerbi.visuals.plugins = window.powerbi.visuals.plugins || {};
+
+      var currentVisual = null;
+      var currentDemo = 'legal-entities';
+
+      var headers = {
+        'legal-entities': 'Legal Entities & Shareholders Graph — Tech / conglomerate example (Alphabet, Meta, Tesla, SpaceX, etc.). Click a node to explore.',
+        'legal-entities-custom': 'Legal Entities (custom style) — Same data, violet/emerald palette to demonstrate configurable look and feel.',
+        'generic-graph': 'Generic Graph — Default style. Simple A–F network (Source, Target, Weight).',
+        'generic-graph-custom': 'Generic Graph (custom style) — Same data, sky/amber palette.',
+        'species': 'Species & taxonomy — Shapes and sizes by taxonomic rank: rect (kingdom/phylum), roundedRect (class/order), circle (family/genus/species), triangle (subspecies).',
+        'sentence': 'Sentence / POS — Shapes by part of speech: rect (nouns), roundedRect (verbs), circle (det/adj), triangle (prep).'
+      };
+
+      function showError(msg) {
+        var el = document.getElementById('error');
+        el.textContent = msg;
+        el.style.display = 'block';
+      }
+      function hideError() {
+        document.getElementById('error').style.display = 'none';
+      }
+
+      function destroyCurrent() {
+        if (currentVisual && typeof currentVisual.destroy === 'function') {
+          currentVisual.destroy();
+        }
+        currentVisual = null;
+      }
+
+      function runDemo(id) {
+        destroyCurrent();
+        currentDemo = id;
+        var headerText = headers[id] || headers['legal-entities'];
+        var parts = headerText.split(' — ');
+        document.getElementById('content-header').innerHTML = parts.length > 1 ? '<strong>' + parts[0] + '</strong> — ' + parts.slice(1).join(' — ') : headerText;
+        hideError();
+
+        var el = document.getElementById('visual');
+        el.innerHTML = '';
+        el.style.display = '';
+
+        if (id === 'legal-entities') {
+          var plugin = window.inventivLegalEntitiesGraph_DEBUG || window.inventivLegalEntitiesGraph;
+          if (!plugin || typeof plugin.create !== 'function') {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = plugin.create({ element: el });
+            var demoData = window.__inventivDemoDataView;
+            currentVisual.update({ dataViews: demoData ? [demoData] : [] });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        } else if (id === 'legal-entities-custom') {
+          var createLegal = window.__inventivCreateLegalEntitiesGraph;
+          var legacyGraph = window.__inventivDemoLegacyGraph;
+          var customConfig = window.__inventivCustomLegalConfig;
+          if (!createLegal || !legacyGraph) {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = createLegal(el, legacyGraph, { config: customConfig });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        } else if (id === 'generic-graph') {
+          var pluginGen = window.inventivGenericGraph_DEBUG || window.inventivGenericGraph;
+          if (!pluginGen || typeof pluginGen.create !== 'function') {
+            showError('Generic Graph plugin not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = pluginGen.create({ element: el });
+            var demoDataGen = window.__inventivDemoDataViewGeneric;
+            currentVisual.update({ dataViews: demoDataGen ? [demoDataGen] : [] });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        } else if (id === 'generic-graph-custom') {
+          var createGeneric = window.__inventivCreateGenericGraph;
+          var genericRows = window.__inventivDemoGenericRows;
+          var customGenericConfig = window.__inventivCustomGenericConfig;
+          if (!createGeneric || !genericRows) {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = createGeneric(el, { rows: genericRows }, { config: customGenericConfig });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        } else if (id === 'species') {
+          var createGeneric = window.__inventivCreateGenericGraph;
+          var speciesRows = window.__inventivDemoSpeciesRows;
+          var mappingWithType = window.__inventivMappingWithType;
+          var speciesShapeConfig = window.__inventivSpeciesShapeConfig;
+          if (!createGeneric || !speciesRows) {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = createGeneric(el, { rows: speciesRows }, { mapping: mappingWithType, config: speciesShapeConfig });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        } else if (id === 'sentence') {
+          var createGeneric = window.__inventivCreateGenericGraph;
+          var sentenceRows = window.__inventivDemoSentenceRows;
+          var mappingWithType = window.__inventivMappingWithType;
+          var sentenceShapeConfig = window.__inventivSentenceShapeConfig;
+          if (!createGeneric || !sentenceRows) {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
+            return;
+          }
+          try {
+            currentVisual = createGeneric(el, { rows: sentenceRows }, { mapping: mappingWithType, config: sentenceShapeConfig });
+          } catch (e) {
+            showError('Failed to run demo: ' + e.message);
+          }
+        }
+      }
+
+      document.querySelectorAll('.nav-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+          document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+          item.classList.add('active');
+          runDemo(item.getAttribute('data-demo'));
+        });
+      });
+
+      var script = document.createElement('script');
+      script.src = 'dist/visual.js';
+      script.async = false;
+      script.onload = function() { runDemo('legal-entities'); };
+      script.onerror = function() {
+        showError('Could not load dist/visual.js. From repo root run: npm run build:demo then npm run demo');
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

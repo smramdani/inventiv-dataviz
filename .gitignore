@@ -5,3 +5,4 @@ dist/
 webpack.statistics*.html
 *.log
 test/dist/
+demo/dist/
