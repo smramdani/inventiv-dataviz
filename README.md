@@ -1,6 +1,28 @@
 # Inventiv DataViz
 
-**Graph widgets for the web and Power BI.** Drop a graph into any page or report with a single script and one function call.
+**A small collection of graph widgets that are actually easy to use.**
+
+---
+
+## What is this?
+
+**Inventiv DataViz** is a set of **ready‑to‑drop graph visuals** for the web and for Power BI. No heavy framework, no “first configure 47 things” — you get **interactive node‑and‑link graphs** (zoom, pan, drag, click‑to‑expand) with minimal setup.
+
+Think of it as: *“I need a graph on this page / in this report. Give me one div, one script, one function call.”* That’s the idea.
+
+- **For the web:** Use a single script tag (or an ESM import) and call `createGenericGraph()` or `createLegalEntitiesGraph()`. Your data is plain JSON (nodes, links, or simple rows). Works in any HTML page, React, Vue, or dashboard.
+- **For Power BI:** Import the `.pbiviz` file once, drag the visual onto the report, and bind your fields. No code in the report.
+
+You get **two widgets** (for now): a **Generic Graph** for any network (anything with nodes and connections), and a **Legal Entities Graph** for company structures (entities, shareholders, ownership %). Both share the same engine, so they behave the same way and stay lightweight.
+
+**TL;DR:** Useful, easy‑to‑use dataviz widgets. Web + Power BI. One container, one call. Then you can customize colors, shapes, and data as much as you like.
+
+### Widgets available today
+
+- **Generic Graph** — Any network: nodes and links, with optional weights and labels. Customize colors, shapes (circle, rect, triangle…), and layout. Ideal for org charts, dependency graphs, taxonomies, or any “things connected to things”.
+- **Legal Entities Graph** — Built for corporate structures: legal entities, shareholders, and ownership. Click a node to expand and see who owns what; share % on edges. Same engine as the generic one, with semantics tuned for entities and shareholders.
+
+**More widgets are on the roadmap.** If you need a **specific widget** or a **particular dataviz** (custom chart, diagram, or visual), get in touch with the project team — they’ll be happy to discuss and implement it.
 
 **License:** [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 
