@@ -189,7 +189,7 @@ InventivDataviz.createLegalEntitiesGraph(container, data, {
 });
 ```
 
-Edge width and arrow size scale with each link’s **weight** (min/max in config). Map your numeric column (e.g. shares, volume) via `linkWeightField` in the mapping — see [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md). More options: [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
+Edge width and arrow size scale with each link’s **weight** (min/max in config). Map your numeric column (e.g. shares, volume) via `linkWeightField` in the mapping — see [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md). **Full customization guide** (shapes, colors, sizes, labels, examples): [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md).
 
 **Layout persistence:** Positions, zoom and (for Legal Entities) which nodes are opened are saved on drag end and zoom end, and restored on load. On the web, pass `layoutKey: "my-graph"` (a stable id, not derived from node IDs) to save/restore in `localStorage`; when data changes (nodes added/removed), existing nodes keep their positions and new nodes get default placement. Use `onLayoutChange(state)` and `initialLayoutState` for custom storage. In Power BI, layout is persisted with the report. See [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md).
 
@@ -254,6 +254,7 @@ npm run test:e2e     # Automated E2E: build demo, start server, run Playwright t
 ## Docs
 
 - **Getting started:** [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) (step-by-step) and [examples/README.md](examples/README.md) (minimal examples).
+- **Customization (shapes, colors, sizes, examples):** [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md).
 - **Data shapes and mapping:** [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md).
 - **Vision, design, roadmap:** [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
 - **Layout persistence:** [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore positions and zoom on drag/zoom end; `layoutKey` per graph; partial restore when data changes.

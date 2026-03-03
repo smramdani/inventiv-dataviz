@@ -67,7 +67,7 @@ Serve the page over HTTP (e.g. `npx serve .` in the project root) so the script 
 
 ## 3. Richer cases
 
-- **Custom colors/sizes:** pass a third argument `{ config: { ... } }`. See the main [README](../README.md#options-customize-look-and-behavior).
+- **Custom colors, shapes, sizes:** pass a third argument `{ config: { ... } }`. Full reference and examples: [CUSTOMIZATION.md](CUSTOMIZATION.md).
 - **Layout persistence:** pass `layoutKey: "my-graph"` (stable id, not from node IDs) so positions and zoom are saved in localStorage on drag/zoom end and restored on load; when data changes, existing nodes keep positions and new nodes get default placement. See [LAYOUT_PERSISTENCE_PLAN.md](LAYOUT_PERSISTENCE_PLAN.md).
 - **Update data later:** the API returns a handle; call `handle.updateData(newData)`.
 - **ESM / bundler:** import from `inventiv-dataviz.esm.js` – see [README – Web usage ESM](../README.md#web---esm-vite-react-etc).
@@ -78,6 +78,7 @@ Serve the page over HTTP (e.g. `npx serve .` in the project root) so the script 
 
 ## Where to go next
 
+- **Customization (shapes, colors, sizes, code examples):** [CUSTOMIZATION.md](CUSTOMIZATION.md)
 - **Minimal examples:** [examples/README.md](../examples/README.md)
 - **Data shapes and mapping:** [DATA_MAPPING.md](DATA_MAPPING.md)
 - **Vision and roadmap:** [VISION_AND_ROADMAP.md](VISION_AND_ROADMAP.md)
