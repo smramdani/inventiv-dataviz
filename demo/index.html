@@ -60,9 +60,22 @@
       border-radius: 6px;
     }
     .app-header .tagline {
-      margin-left: auto;
+      margin-right: 0.5rem;
       font-size: 0.85rem;
       color: var(--inv-text-muted);
+    }
+    .app-header .repo-link {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: var(--inv-accent);
+      text-decoration: none;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .app-header .repo-link:hover {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--inv-accent-hover);
     }
     .main {
       display: flex;
@@ -154,6 +167,7 @@
     <span class="logo">Inventiv DataViz</span>
     <span class="badge">Demo</span>
     <span class="tagline">Graph widgets for Web & Power BI</span>
+    <a href="https://github.com/smramdani/inventiv-dataviz" target="_blank" rel="noopener noreferrer" class="repo-link" title="Voir le README du dépôt">README / Repo</a>
   </header>
   <main class="main">
     <nav class="nav">
