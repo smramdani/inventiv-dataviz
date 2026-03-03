@@ -8,7 +8,7 @@
 
 Try the widgets in your browser without cloning or running a server:
 
-**[Open live demo](https://smramdani.github.io/inventiv-dataviz/)** *(replace `smramdani` with your GitHub username if you forked)*
+**[Open live demo](https://github.com/smramdani/inventiv-dataviz)** (demo in `demo/`; once GitHub Pages is enabled, it also runs at [smramdani.github.io/inventiv-dataviz](https://smramdani.github.io/inventiv-dataviz/))
 
 To publish the demo from this repo: **Settings → Pages → Source: GitHub Actions.** The [workflow](.github/workflows/deploy-demo.yml) builds and deploys the demo on every push to `main`/`master`.
 
