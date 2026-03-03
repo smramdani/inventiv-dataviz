@@ -269,6 +269,12 @@ export function renderGraph(
   let zoomTransform = initialTransform;
   const LAYOUT_DEBOUNCE_MS = 400;
   let layoutChangeTimeout: ReturnType<typeof setTimeout> | null = null;
+  function getLayoutSnapshot() {
+    return {
+      positions: Object.fromEntries(currentLastPositions),
+      zoom: { k: zoomTransform.k, x: zoomTransform.x, y: zoomTransform.y },
+    };
+  }
   function scheduleLayoutChange() {
     if (!onLayoutChange) return;
     if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] scheduleLayoutChange: debounce");
@@ -276,11 +282,19 @@ export function renderGraph(
     layoutChangeTimeout = setTimeout(() => {
       layoutChangeTimeout = null;
       if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] onLayoutChange: fire");
-      onLayoutChange({
-        positions: Object.fromEntries(currentLastPositions),
-        zoom: { k: zoomTransform.k, x: zoomTransform.x, y: zoomTransform.y },
-      });
+      onLayoutChange(getLayoutSnapshot());
     }, LAYOUT_DEBOUNCE_MS);
+  }
+  /** Persist layout immediately (e.g. on drag end) so changes are not lost before debounce. */
+  function flushLayoutChange() {
+    if (layoutChangeTimeout) {
+      clearTimeout(layoutChangeTimeout);
+      layoutChangeTimeout = null;
+    }
+    if (onLayoutChange) {
+      if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] onLayoutChange: flush");
+      onLayoutChange(getLayoutSnapshot());
+    }
   }
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
@@ -288,7 +302,7 @@ export function renderGraph(
     .on("start", () => svg.style("cursor", "grabbing"))
     .on("end", () => {
       svg.style("cursor", "grab");
-      scheduleLayoutChange();
+      flushLayoutChange();
     })
     .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
       g.attr("transform", event.transform.toString());
@@ -449,6 +463,8 @@ export function renderGraph(
           if (!event.active) simulation.alphaTarget(0);
           d.fx = event.x;
           d.fy = event.y;
+          currentLastPositions.set(d.id, { x: event.x, y: event.y, fx: event.x, fy: event.y });
+          flushLayoutChange();
         })
     )
     .on("click", (event, d) => {

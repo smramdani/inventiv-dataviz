@@ -278,15 +278,14 @@
             showError('Failed to run demo: ' + e.message);
           }
         } else if (id === 'generic-graph') {
-          var pluginGen = window.inventivGenericGraph_DEBUG || window.inventivGenericGraph;
-          if (!pluginGen || typeof pluginGen.create !== 'function') {
-            showError('Generic Graph plugin not found. From repo root run: npm run build:demo');
+          var createGeneric = window.__inventivCreateGenericGraph;
+          var genericRows = window.__inventivDemoGenericRows;
+          if (!createGeneric || !genericRows) {
+            showError('Demo bundle not found. From repo root run: npm run build:demo');
             return;
           }
           try {
-            currentVisual = pluginGen.create({ element: el });
-            var demoDataGen = window.__inventivDemoDataViewGeneric;
-            currentVisual.update({ dataViews: demoDataGen ? [demoDataGen] : [] });
+            currentVisual = createGeneric(el, { rows: genericRows }, { layoutKey: 'demo-generic-graph' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }
