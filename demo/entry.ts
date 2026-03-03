@@ -75,18 +75,35 @@ const legalGraphAnonymized = getFakeGraph();
   targetTypeField: "targetType",
 });
 
-/** Custom style for Legal Entities: violet/emerald palette. */
+/** Custom style for Legal Entities #2: orange (personnes physiques), violet (entités morales), arêtes vert/bleu. */
 (window as any).__inventivCustomLegalConfig = {
-  nodeFillClosedByType: { Shareholder: "#4b5563", Entity: "#ddd6fe" },
-  nodeFillOpenByType: { Shareholder: "#059669", Entity: "#7c3aed" },
-  nodeFillClosedDefault: "#ddd6fe",
+  nodeShapeByType: { Shareholder: "roundedRect", Entity: "roundedRect" },
+  nodeShapeDefault: "roundedRect",
+  nodeShapeRoundedRectRadius: 8,
+  nodeFillClosedByType: { Shareholder: "#fed7aa", Entity: "#e9d5ff" },
+  nodeFillOpenByType: { Shareholder: "#ea580c", Entity: "#7c3aed" },
+  nodeFillClosedDefault: "#e9d5ff",
   nodeFillOpenDefault: "#7c3aed",
   nodeStroke: "#fff",
-  linkStroke: "#7c3aed",
-  linkStrokeOpacity: 0.7,
-  arrowFill: "#6d28d9",
+  linkStrokeOpacity: 0.85,
   labelColor: "#1f2937",
-  linkLabelStroke: "#a78bfa",
+  linkLabelFill: "#fafafa",
+  linkLabelStroke: "#c4b5fd",
+  // Personne physique → Entité morale: vert; Entité → Entité: bleu
+  linkStroke(link: { fromNode: { type?: string }; toNode: { type?: string } }) {
+    const from = link.fromNode?.type ?? "";
+    const to = link.toNode?.type ?? "";
+    if (from === "Shareholder" && to === "Entity") return "#16a34a";
+    if (from === "Entity" && to === "Entity") return "#2563eb";
+    return "#64748b";
+  },
+  arrowFill(link: { fromNode: { type?: string }; toNode: { type?: string } }) {
+    const from = link.fromNode?.type ?? "";
+    const to = link.toNode?.type ?? "";
+    if (from === "Shareholder" && to === "Entity") return "#15803d";
+    if (from === "Entity" && to === "Entity") return "#1d4ed8";
+    return "#475569";
+  },
 } as Partial<GraphConfig>;
 
 /** Custom style for Generic Graph: sky/amber palette. */

@@ -37,7 +37,7 @@ export {
   type LegalEntitiesLink,
 } from "./adapter";
 
-export type { GraphConfig, NodeShape } from "./config";
+export type { GraphConfig, NodeShape, LinkStyleContext } from "./config";
 export { DEFAULT_GRAPH_CONFIG, DEFAULT_GENERIC_GRAPH_CONFIG } from "./config";
 
 export {

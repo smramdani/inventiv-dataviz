@@ -109,15 +109,16 @@ config: {
 
 | Parameter | Description |
 |-----------|-------------|
-| `linkStroke` | Color of the link line. |
+| `linkStroke` | Color of the link line. Can be a string or a function `(link) => color` where `link` has `fromNode.type` and `toNode.type` (e.g. to color by Personne physique → Entité: green, Entité → Entité: blue). |
 | `linkStrokeOpacity` | Opacity of the link (e.g. `0.7`). |
-| `arrowFill` | Color of the arrow head. |
+| `arrowFill` | Color of the arrow head. Can be a string or a function `(link) => color` for per-link arrow color. |
 
 ### Labels
 
 | Parameter | Description |
 |-----------|-------------|
 | `labelColor` | Color of **node labels** and **link label text**. |
+| `nodeLabelOffset` | Horizontal distance from node edge to node label (default `5`). Increase to move the label farther from the node. |
 | `linkLabelFill` | Background of the link label box (e.g. `"white"`). |
 | `linkLabelStroke` | Border of the link label box. |
 
@@ -164,10 +165,11 @@ config: {
 
 | Parameter | Description |
 |-----------|-------------|
+| `nodeLabelOffset` | Distance from node edge to node label (default 5). |
 | `labelFontSizeSmall` | Font size for small nodes (radius ≤ 14). |
 | `labelFontSizeLarge` | Font size for larger nodes. |
 | `linkLabelFontSize` | Font size of the text on link labels. |
-| `linkLabelOffset` | Distance from arrow tip to link label (e.g. `50`). |
+| `linkLabelOffset` | Distance from arrow tip to link label (default `70`). |
 
 ### Layout
 
@@ -222,7 +224,7 @@ config: {
 | **Node size** | `nodeRadiusDefault`, `nodeRadiusByType` |
 | **Node colors** | `nodeFillOpenByType`, `nodeFillOpenDefault`, `nodeFillClosedByType`, `nodeFillClosedDefault`, `nodeStroke`, `nodeStrokeWidth` |
 | **Link/arrow** | `linkStroke`, `linkStrokeOpacity`, `linkStrokeWidthMin`, `linkStrokeWidthMax`, `arrowFill`, `arrowMarkerSizeMin`, `arrowMarkerSizeMax`, `weightToSizeCurve` |
-| **Labels** | `labelColor`, `labelFontSizeSmall`, `labelFontSizeLarge`, `linkLabelOffset`, `linkLabelFontSize`, `linkLabelFill`, `linkLabelStroke` |
+| **Labels** | `labelColor`, `nodeLabelOffset`, `labelFontSizeSmall`, `labelFontSizeLarge`, `linkLabelOffset`, `linkLabelFontSize`, `linkLabelFill`, `linkLabelStroke` |
 | **Visibility** | `showArrows`, `showLinkLabel` |
 | **Layout/zoom** | `placeNewNodesRadius`, `zoomExtent`, `fixNodesAfterExpand` |
 
@@ -327,7 +329,7 @@ The sections above cover all parameters that currently affect rendering and beha
 
 - **Shapes:** `nodeShapeDefault`, `nodeShapeByType`, `nodeShapeRoundedRectRadius`.
 - **Colors:** node fill (open/closed, by type), `nodeStroke`, `nodeStrokeWidth`, `linkStroke`, `linkStrokeOpacity`, `arrowFill`, `labelColor`, `linkLabelFill`, `linkLabelStroke`.
-- **Sizes/distances:** `nodeRadiusDefault`, `nodeRadiusByType`, `linkStrokeWidthMin/Max`, `arrowMarkerSizeMin/Max`, `weightToSizeCurve`, `labelFontSizeSmall/Large`, `linkLabelFontSize`, `linkLabelOffset`, `placeNewNodesRadius`, `zoomExtent`.
+- **Sizes/distances:** `nodeRadiusDefault`, `nodeRadiusByType`, `linkStrokeWidthMin/Max`, `arrowMarkerSizeMin/Max`, `weightToSizeCurve`, `nodeLabelOffset`, `labelFontSizeSmall/Large`, `linkLabelFontSize`, `linkLabelOffset`, `placeNewNodesRadius`, `zoomExtent`.
 - **Visibility:** `showArrows`, `showLinkLabel`, `fixNodesAfterExpand`.
 
 The config interface also includes layout-related keys (`linkDistance`, `chargeStrength`, `centerStrength`, etc.); they are reserved for potential future layout features and are not used by the current position-based engine.

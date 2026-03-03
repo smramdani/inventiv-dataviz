@@ -6,6 +6,12 @@
 /** Supported node shapes; selection can be driven by node type (e.g. Entity vs Shareholder). */
 export type NodeShape = "circle" | "rect" | "roundedRect" | "triangle";
 
+/** Context passed to per-link style functions (e.g. color by source/target type). */
+export interface LinkStyleContext {
+  fromNode: { type?: string };
+  toNode: { type?: string };
+}
+
 /** Node/link styling and layout parameters. */
 export interface GraphConfig {
   /** Link force distance (default 65). */
@@ -46,8 +52,8 @@ export interface GraphConfig {
   nodeStroke: string;
   /** Node stroke width (default 2). */
   nodeStrokeWidth: number;
-  /** Link stroke color (default #999). */
-  linkStroke: string;
+  /** Link stroke color, or function (link) => color for per-link color (e.g. by source/target type). */
+  linkStroke: string | ((link: LinkStyleContext) => string);
   /** Link stroke opacity (default 0.6). */
   linkStrokeOpacity: number;
   /** Link stroke width; if a number, fixed; if function, (weight) => width. Ignored when linkStrokeWidthMin/Max are set. */
@@ -58,13 +64,15 @@ export interface GraphConfig {
   linkStrokeWidthMax?: number;
   /** Label text color (default #333). */
   labelColor: string;
+  /** Horizontal offset from node edge to node label (default 5). Larger = label farther from node. */
+  nodeLabelOffset: number;
   /** Label font size for small nodes (radius <= 14) (default 9). */
   labelFontSizeSmall: number;
   /** Label font size for large nodes (default 10). */
   labelFontSizeLarge: number;
   /** Show link labels (default true). */
   showLinkLabel: boolean;
-  /** Distance from arrow tip to place link label (default 50). */
+  /** Distance from arrow tip to place link label (default 70). */
   linkLabelOffset: number;
   /** Link label font size (default 9). */
   linkLabelFontSize: number;
@@ -76,8 +84,8 @@ export interface GraphConfig {
   showArrows: boolean;
   /** SVG marker id for arrow (default 'arrow'). */
   arrowMarkerId: string;
-  /** Arrow fill color (default #666). */
-  arrowFill: string;
+  /** Arrow fill color, or function (link) => color for per-link arrow color. */
+  arrowFill: string | ((link: LinkStyleContext) => string);
   /**
    * Min arrow marker size (SVG units) when scaling by weight.
    * With arrowMarkerSizeMax, size is mapped linearly from min weight to max weight (e.g. 0–100% for Legal Entities).
@@ -145,10 +153,11 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   linkStrokeWidthMin: 2,
   linkStrokeWidthMax: 4,
   labelColor: "#333",
+  nodeLabelOffset: 5,
   labelFontSizeSmall: 9,
   labelFontSizeLarge: 10,
   showLinkLabel: true,
-  linkLabelOffset: 50,
+  linkLabelOffset: 70,
   linkLabelFontSize: 9,
   linkLabelFill: "white",
   linkLabelStroke: "#94a3b8",

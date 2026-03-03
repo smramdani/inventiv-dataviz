@@ -5,7 +5,7 @@
 
 import * as d3 from "d3";
 import type { GraphData, MappedNode, MappedLink, LayoutState } from "./types";
-import type { GraphConfig, NodeShape } from "./config";
+import type { GraphConfig, NodeShape, LinkStyleContext } from "./config";
 
 /** Node with position (x, y, optional fixed fx, fy). */
 export type EngineNode = MappedNode & {
@@ -315,6 +315,12 @@ export function renderGraph(
 
   // Arrow marker(s): one per link when size scales by weight, else one shared marker
   const defs = svg.append("defs");
+  function getLinkStroke(link: EngineLink): string {
+    return typeof config.linkStroke === "function" ? config.linkStroke(link) : config.linkStroke;
+  }
+  function getArrowFill(link: EngineLink): string {
+    return typeof config.arrowFill === "function" ? config.arrowFill(link) : config.arrowFill;
+  }
   if (config.showArrows) {
     const scaleArrowByWeight =
       config.arrowMarkerSizeMin != null &&
@@ -334,10 +340,11 @@ export function renderGraph(
           .attr("orient", "auto")
           .append("path")
           .attr("d", "M0,-4L10,0L0,4")
-          .attr("fill", config.arrowFill);
+          .attr("fill", getArrowFill(link));
       });
     } else {
       const size = 8;
+      const defaultArrowFill = typeof config.arrowFill === "string" ? config.arrowFill : (engineLinks[0] ? getArrowFill(engineLinks[0]) : "#666");
       defs
         .append("marker")
         .attr("id", config.arrowMarkerId)
@@ -349,7 +356,7 @@ export function renderGraph(
         .attr("orient", "auto")
         .append("path")
         .attr("d", "M0,-4L10,0L0,4")
-        .attr("fill", config.arrowFill);
+        .attr("fill", defaultArrowFill);
     }
   }
 
@@ -363,7 +370,7 @@ export function renderGraph(
     .selectAll<SVGLineElement, EngineLink>("line")
     .data(engineLinks)
     .join("line")
-    .attr("stroke", config.linkStroke)
+    .attr("stroke", (d) => getLinkStroke(d))
     .attr("stroke-opacity", config.linkStrokeOpacity)
     .attr(
       "stroke-width",
@@ -496,7 +503,7 @@ export function renderGraph(
     .append("text")
     .text((d) => d.label ?? d.id)
     .attr("font-size", labelFontSize)
-    .attr("dx", (d) => getNodeRadius(d, config) + 2)
+    .attr("dx", (d) => getNodeRadius(d, config) + (config.nodeLabelOffset ?? 5))
     .attr("dy", 4)
     .attr("fill", config.labelColor)
     .clone(true)

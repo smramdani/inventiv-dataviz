@@ -1,7 +1,7 @@
 {
   "name": "inventiv-dataviz",
   "description": "Multi-widget Power BI custom visuals (Inventiv). Widgets: Legal Entities Graph and more.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "pbiviz": "pbiviz",
