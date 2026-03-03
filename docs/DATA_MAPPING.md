@@ -120,26 +120,17 @@ const config = createRowBasedMapping({
 
 Use the same pattern for `targetNodeAttributePairs` (e.g. `to_att1_name`, `to_att1_value`) and `linkAttributePairs` (e.g. `link_att1_name`, `link_att1_value`).
 
-## Using with the Legal Entities visual
+## Using with the Legal Entities graph
 
-Convert mapped data to the legacy format expected by the current visual:
+The Legal Entities widget expects data in **Legal Entities format**: `{ nodes: LegalEntitiesNode[], links: LegalEntitiesLink[] }` with `nodes[].type` in `"Entity" | "Shareholder"` and `links[].shares` as numbers. Use `createLegalEntitiesGraph(container, data, options)` (web) or bind the Power BI visual to your data view.
 
-```ts
-import { mapInputToGraph, graphDataToLegacy } from "./src/graph";
-
-const graphData = mapInputToGraph(rawInput, config);
-const legacyGraph = graphDataToLegacy(graphData);
-// legacyGraph.nodes: { id, label, type: "Entity" | "Shareholder" }[]
-// legacyGraph.links: { source, target, shares }[]
-```
-
-Then pass `legacyGraph` to the visual’s internal graph model (when the visual is refactored to accept it).
+If you have **GraphData** (e.g. from `mapInputToGraph`) and need the Legal Entities shape, map nodes/links manually: node `type` to `"Entity"` or `"Shareholder"`, link `weight` to `shares`. The adapter exports **`legalEntitiesToGraphData(graph): GraphData`** for the reverse (Legal Entities input → GraphData for the engine).
 
 ## API summary
 
 - **`mapInputToGraph(input, config): GraphData`** – Map raw input to normalized nodes/links and attributes.
 - **`createRowBasedMapping(options): DataMappingConfig`** – Build row-based config (each row = one link, optional node/link attribute pairs).
-- **`graphDataToLegacy(graph): LegacyFullGraph`** – Convert GraphData to the legacy Legal Entities shape (Entity/Shareholder, shares).
+- **`legalEntitiesToGraphData(graph): GraphData`** – Convert Legal Entities input (nodes + links with shares) to GraphData for the generic engine.
 - **`DEFAULT_GENERIC_MAPPING`** / **`DEFAULT_LEGAL_ENTITIES_MAPPING`** – Predefined configs for generic and Legal Entities use cases.
 
 All types and config interfaces are exported from `src/graph/index.ts`.

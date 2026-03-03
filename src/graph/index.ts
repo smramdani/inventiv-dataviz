@@ -30,12 +30,11 @@ export {
 export { mapInputToGraph, createRowBasedMapping } from "./mapper";
 
 export {
-  graphDataToLegacy,
-  legacyToGraphData,
+  legalEntitiesToGraphData,
   buildLegalEntitiesGraphData,
-  type LegacyFullGraph,
-  type LegacyGraphNode,
-  type LegacyGraphLink,
+  type LegalEntitiesGraph,
+  type LegalEntitiesNode,
+  type LegalEntitiesLink,
 } from "./adapter";
 
 export type { GraphConfig, NodeShape } from "./config";

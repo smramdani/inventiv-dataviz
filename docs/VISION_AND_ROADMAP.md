@@ -134,7 +134,7 @@ A **generic data binding and mapping system** (in `src/graph/`) maps raw JSON or
 - **Input**: `rows` (each row = one link), or explicit `nodes` + `links` arrays. Columns can follow patterns like `node_id`, `node_name`, `node_att1_name`, `att1_value`, `node_att2_name`, `att2_value`, `link_id`, `link_label`, etc.
 - **Config**: `DataMappingConfig` describes which fields are node id/label/type, link source/target/id/label/weight, and optional **attribute pairs** (name column + value column) or **attribute columns** (fixed key → column) for nodes and links.
 - **Output**: `GraphData` with `MappedNode[]` (id, label?, type?, attributes?) and `MappedLink[]` (source, target, id?, label?, weight?, attributes?).
-- **Adapter**: `graphDataToLegacy(graph)` converts `GraphData` to the legacy Legal Entities shape (Entity/Shareholder, shares) for the current visual.
+- **Adapter**: Legal Entities input format `LegalEntitiesGraph` (nodes + links with shares); `legalEntitiesToGraphData(graph)` converts it to `GraphData` for the engine.
 
 See **[DATA_MAPPING.md](DATA_MAPPING.md)** for the full API and examples.
 
@@ -144,7 +144,7 @@ See **[DATA_MAPPING.md](DATA_MAPPING.md)** for the full API and examples.
 
 ### Phase 1: Extract and generalize (Generic Graph foundation)
 
-- [x] **Data binding and mapping** in `src/graph/`: `MappedNode`, `MappedLink`, `GraphData`, `DataMappingConfig`, `mapInputToGraph()`, row-based and structured mapping, attribute pairs (e.g. node_att1_name, att1_value), `graphDataToLegacy()`. See [DATA_MAPPING.md](DATA_MAPPING.md).
+- [x] **Data binding and mapping** in `src/graph/`: `MappedNode`, `MappedLink`, `GraphData`, `DataMappingConfig`, `mapInputToGraph()`, row-based and structured mapping, attribute pairs (e.g. node_att1_name, att1_value), `legalEntitiesToGraphData()`, `LegalEntitiesGraph`. See [DATA_MAPPING.md](DATA_MAPPING.md).
 - [x] **GraphConfig** in `src/graph/config.ts` with layout, style, behavior params; defaults from current visual.
 - [x] **Graph engine** in `src/graph/engine.ts`: simulation, zoom, pan, drag, render from config; no Entity/Shareholder logic.
 - [x] **Legal Entities visual** refactored: `src/visual.ts` uses `buildLegalEntitiesGraphData` + `renderGraph` + `DEFAULT_GRAPH_CONFIG`; expand-on-click and share % in adapter/engine.

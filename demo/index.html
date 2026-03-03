@@ -254,7 +254,7 @@
 
         if (id === 'legal-entities') {
           var createLegal = window.__inventivCreateLegalEntitiesGraph;
-          var legacyGraph = window.__inventivDemoLegacyGraph;
+          var legacyGraph = window.__inventivDemoLegalGraph;
           if (!createLegal || !legacyGraph) {
             showError('Demo bundle not found. From repo root run: npm run build:demo');
             return;
@@ -266,7 +266,7 @@
           }
         } else if (id === 'legal-entities-custom') {
           var createLegal = window.__inventivCreateLegalEntitiesGraph;
-          var legacyGraph = window.__inventivDemoLegacyGraph;
+          var legacyGraph = window.__inventivDemoLegalGraph;
           var customConfig = window.__inventivCustomLegalConfig;
           if (!createLegal || !legacyGraph) {
             showError('Demo bundle not found. From repo root run: npm run build:demo');

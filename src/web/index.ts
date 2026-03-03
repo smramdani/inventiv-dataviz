@@ -17,7 +17,7 @@ import {
   buildLegalEntitiesGraphData,
   DEFAULT_GRAPH_CONFIG,
   DEFAULT_GENERIC_GRAPH_CONFIG,
-  type LegacyFullGraph,
+  type LegalEntitiesGraph,
 } from "../graph";
 
 const LAYOUT_STORAGE_PREFIX = "inventiv-dataviz-layout-";
@@ -70,7 +70,7 @@ function saveLayoutToStorage(key: string, state: LayoutState): void {
 
 export interface WebGraphHandle {
   destroy(): void;
-  updateData(data: GraphData | RawGraphInput | LegacyFullGraph): void;
+  updateData(data: GraphData | RawGraphInput | LegalEntitiesGraph): void;
   updateOptions?(options: Record<string, unknown>): void;
 }
 
@@ -126,7 +126,7 @@ export function createGenericGraph(
     destroy() {
       handle.destroy();
     },
-    updateData(newData: GraphData | RawGraphInput | LegacyFullGraph) {
+      updateData(newData: GraphData | RawGraphInput | LegalEntitiesGraph) {
       const lastPositions = handle.getLastPositions();
       const lastZoom = handle.getZoomTransform();
       handle.destroy();
@@ -137,9 +137,9 @@ export function createGenericGraph(
         const mapping = options.mapping ?? createRowBasedMapping({ sourceField: "source", targetField: "target", linkWeightField: "weight" });
         next = mapInputToGraph(newData as RawGraphInput, mapping);
       } else {
-        const legacy = newData as unknown as LegacyFullGraph;
-        const allIds = new Set(legacy.nodes.map((n) => n.id));
-        next = buildLegalEntitiesGraphData(legacy, allIds);
+        const legalData = newData as unknown as LegalEntitiesGraph;
+        const allIds = new Set(legalData.nodes.map((n) => n.id));
+        next = buildLegalEntitiesGraphData(legalData, allIds);
       }
       handle = renderGraph(container, next, config, {
         lastPositions,
@@ -176,11 +176,11 @@ export interface LegalEntitiesGraphOptions {
 
 /**
  * Create a Legal Entities / Shareholders graph in the container.
- * Supports expand-on-click; data is the full legacy graph.
+ * Supports expand-on-click; data is the full Legal Entities graph (nodes + links with shares).
  */
 export function createLegalEntitiesGraph(
   container: HTMLElement,
-  data: LegacyFullGraph,
+  data: LegalEntitiesGraph,
   options: LegalEntitiesGraphOptions = {}
 ): WebGraphHandle {
   const defaultStartId = options.defaultStartNodeId ?? data.nodes[0]?.id ?? "";
@@ -264,11 +264,11 @@ export function createLegalEntitiesGraph(
       engineHandle?.destroy();
       engineHandle = null;
     },
-    updateData(newData: GraphData | RawGraphInput | LegacyFullGraph) {
-      const legacy = newData as LegacyFullGraph;
-      if (!legacy.nodes?.length || !legacy.links) return;
-      data = legacy;
-      const startId = options.defaultStartNodeId ?? legacy.nodes[0]?.id ?? "";
+      updateData(newData: GraphData | RawGraphInput | LegalEntitiesGraph) {
+      const legalData = newData as LegalEntitiesGraph;
+      if (!legalData.nodes?.length || !legalData.links) return;
+      data = legalData;
+      const startId = options.defaultStartNodeId ?? legalData.nodes[0]?.id ?? "";
       visibleNodeIds = new Set(startId ? [startId] : []);
       openedNodeIds = new Set(startId ? [startId] : []);
       lastPositions = new Map();
@@ -288,7 +288,7 @@ export function createLegalEntitiesGraph(
 export type {
   GraphData,
   RawGraphInput,
-  LegacyFullGraph,
+  LegalEntitiesGraph,
   GraphConfig,
   DataMappingConfig,
   LayoutState,

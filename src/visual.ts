@@ -9,7 +9,7 @@ import {
   buildLegalEntitiesGraphData,
   DEFAULT_GRAPH_CONFIG,
   type GraphEngineHandle,
-  type LegacyFullGraph,
+  type LegalEntitiesGraph,
   type LayoutState,
 } from "./graph";
 
@@ -19,8 +19,8 @@ import IVisual = powerbi.extensibility.visual.IVisual;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-/** Parse Power BI DataView table rows into LegacyFullGraph. Rows: [from, to, shares] or extended [from, to, shares, fromLabel, toLabel, fromType, toType]. */
-function parseDataViewToLegacyGraph(dataView: powerbi.DataView): LegacyFullGraph {
+/** Parse Power BI DataView table rows into LegalEntitiesGraph. Rows: [from, to, shares] or extended [from, to, shares, fromLabel, toLabel, fromType, toType]. */
+function parseDataViewToLegalEntitiesGraph(dataView: powerbi.DataView): LegalEntitiesGraph {
   const rows = dataView.table?.rows ?? [];
   const nodeMap = new Map<string, { id: string; label: string; type: "Entity" | "Shareholder" }>();
   const links: { source: string; target: string; shares: number }[] = [];
@@ -61,7 +61,7 @@ export class Visual implements IVisual {
   private host: powerbi.extensibility.visual.IVisualHost;
   private formattingSettings: VisualFormattingSettingsModel;
   private formattingSettingsService: FormattingSettingsService;
-  private fullGraph: LegacyFullGraph;
+  private fullGraph: LegalEntitiesGraph;
   private visibleNodeIds: Set<string>;
   private openedNodeIds: Set<string> = new Set();
   private engineHandle: GraphEngineHandle | null = null;
@@ -85,7 +85,7 @@ export class Visual implements IVisual {
         VisualFormattingSettingsModel,
         dataView
       );
-      const parsed = parseDataViewToLegacyGraph(dataView);
+      const parsed = parseDataViewToLegalEntitiesGraph(dataView);
       if (parsed.nodes.length > 0 || parsed.links.length > 0) {
         this.fullGraph = parsed;
         const layoutState = this.readLayoutState(dataView);

@@ -9,7 +9,7 @@ import { GenericGraphVisual } from "../src/visual-generic";
 import { createLegalEntitiesGraph, createGenericGraph } from "../src/web";
 import { createRowBasedMapping } from "../src/graph";
 import { getFakeGraph, getFakeGraphTechCompanies, getFakeDataSpecies, getFakeDataSentence } from "./fakeGraphData";
-import { buildMockDataViewFromLegacyGraph } from "./mockDataView";
+import { buildMockDataViewFromLegalEntitiesGraph } from "./mockDataView";
 import type { GraphConfig } from "../src/graph";
 
 (window as any).powerbi = powerbi;
@@ -17,12 +17,12 @@ import type { GraphConfig } from "../src/graph";
 (window as any).powerbi.visuals.plugins = (window as any).powerbi.visuals.plugins || {};
 
 // Legal Entities: default = tech companies (~30 nodes); anonymized small graph also available
-const legacyGraphTech = getFakeGraphTechCompanies();
-const legacyGraphAnonymized = getFakeGraph();
-(window as any).__inventivDemoDataView = buildMockDataViewFromLegacyGraph(legacyGraphTech);
-(window as any).__inventivDemoLegacyGraph = legacyGraphTech;
-(window as any).__inventivDemoDataViewAnonymized = buildMockDataViewFromLegacyGraph(legacyGraphAnonymized);
-(window as any).__inventivDemoLegacyGraphAnonymized = legacyGraphAnonymized;
+const legalGraphTech = getFakeGraphTechCompanies();
+const legalGraphAnonymized = getFakeGraph();
+(window as any).__inventivDemoDataView = buildMockDataViewFromLegalEntitiesGraph(legalGraphTech);
+(window as any).__inventivDemoLegalGraph = legalGraphTech;
+(window as any).__inventivDemoDataViewAnonymized = buildMockDataViewFromLegalEntitiesGraph(legalGraphAnonymized);
+(window as any).__inventivDemoLegalGraphAnonymized = legalGraphAnonymized;
 
 /** Demo data for Generic Graph: rows [source, target, weight]. */
 (window as any).__inventivDemoDataViewGeneric = {

@@ -4,7 +4,7 @@
  * Legal entity names are anonymized or illustrative (fake data for known brands).
  */
 
-import type { LegacyFullGraph } from "../src/graph";
+import type { LegalEntitiesGraph } from "../src/graph";
 
 function node(id: string, label: string, type: "Entity" | "Shareholder") {
   return { id, label, type };
@@ -15,8 +15,8 @@ function link(source: string, target: string, shares: number) {
 }
 
 /** Anonymized corporate structure (privacy-safe). */
-export function getFakeGraph(): LegacyFullGraph {
-  const nodes: LegacyFullGraph["nodes"] = [
+export function getFakeGraph(): LegalEntitiesGraph {
+  const nodes: LegalEntitiesGraph["nodes"] = [
     node("n1", "Global Holdings (France)", "Entity"),
     node("n2", "Beta Holdings (UK)", "Entity"),
     node("n3", "Gamma Inc (USA)", "Entity"),
@@ -39,7 +39,7 @@ export function getFakeGraph(): LegacyFullGraph {
     node("n20", "David O'Brien", "Shareholder"),
   ];
 
-  const links: LegacyFullGraph["links"] = [
+  const links: LegalEntitiesGraph["links"] = [
     link("n9", "n1", 2500),
     link("n11", "n1", 5000),
     link("n1", "n2", 1000),
@@ -67,8 +67,8 @@ export function getFakeGraph(): LegacyFullGraph {
 }
 
 /** Fake tech / conglomerate structure (~30 nodes): Alphabet, Meta, Tesla, SpaceX, etc. */
-export function getFakeGraphTechCompanies(): LegacyFullGraph {
-  const nodes: LegacyFullGraph["nodes"] = [
+export function getFakeGraphTechCompanies(): LegalEntitiesGraph {
+  const nodes: LegalEntitiesGraph["nodes"] = [
     node("t1", "Alphabet Inc", "Entity"),
     node("t2", "Google LLC", "Entity"),
     node("t3", "YouTube", "Entity"),
@@ -96,7 +96,7 @@ export function getFakeGraphTechCompanies(): LegacyFullGraph {
     node("t25", "SolarCity", "Entity"),
   ];
 
-  const links: LegacyFullGraph["links"] = [
+  const links: LegalEntitiesGraph["links"] = [
     link("t16", "t1", 5000),
     link("t17", "t1", 4800),
     link("t21", "t1", 3000),

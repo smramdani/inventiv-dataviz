@@ -3,9 +3,9 @@
  * Demo only; not part of the library or production package.
  */
 
-import type { LegacyFullGraph } from "../src/graph";
+import type { LegalEntitiesGraph } from "../src/graph";
 
-export function buildMockDataViewFromLegacyGraph(graph: LegacyFullGraph): { table: { rows: unknown[][] } } {
+export function buildMockDataViewFromLegalEntitiesGraph(graph: LegalEntitiesGraph): { table: { rows: unknown[][] } } {
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   const rows = graph.links.map((l) => {
     const from = nodeById.get(l.source);
