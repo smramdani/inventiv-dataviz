@@ -328,12 +328,14 @@
         });
       });
 
+      // Resolve script URL from current path so it works on GitHub Pages (e.g. /inventiv-dataviz/)
+      var basePath = location.pathname.replace(/\/?$/, '/');
       var script = document.createElement('script');
-      script.src = 'dist/visual.js';
+      script.src = basePath + 'dist/visual.js';
       script.async = false;
       script.onload = function() { runDemo('legal-entities'); };
       script.onerror = function() {
-        showError('Could not load dist/visual.js. From repo root run: npm run build:demo then npm run demo');
+        showError('Could not load dist/visual.js (tried: ' + script.src + '). Run: npm run build:demo then deploy, or use npm run demo locally.');
       };
       document.head.appendChild(script);
     })();

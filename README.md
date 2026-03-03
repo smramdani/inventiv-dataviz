@@ -6,11 +6,22 @@
 
 ## ▶ Live demo (no install)
 
-Try the widgets in your browser without cloning or running a server:
+Try the widgets in your browser — no clone, no build, no run:
 
-**[Open live demo](https://github.com/smramdani/inventiv-dataviz)** (demo in `demo/`; once GitHub Pages is enabled, it also runs at [smramdani.github.io/inventiv-dataviz](https://smramdani.github.io/inventiv-dataviz/))
+**[▶ Open live demo](https://smramdani.github.io/inventiv-dataviz/)**
 
-To publish the demo from this repo: **Settings → Pages → Source: GitHub Actions.** The [workflow](.github/workflows/deploy-demo.yml) builds and deploys the demo on every push to `main`/`master`.
+*If the link above doesn’t load yet, the demo just needs to be published once (see below).*
+
+---
+
+### Publish the demo online (one-time setup)
+
+So that users can open the demo without installing anything:
+
+1. On GitHub, open your repo: **https://github.com/smramdani/inventiv-dataviz**
+2. Go to **Settings** → **Pages** (left sidebar).
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+4. Save. The [workflow](.github/workflows/deploy-demo.yml) will run (on the next push to `main`/`master`, or trigger it manually from the **Actions** tab). When it finishes, the demo is live at **https://smramdani.github.io/inventiv-dataviz/**.
 
 ---
 
