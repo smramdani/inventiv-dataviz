@@ -12,7 +12,9 @@
     "demo": "node scripts/serve-demo.js",
     "build:test": "node scripts/build-demo.js",
     "test:local": "node scripts/serve-demo.js",
-    "build:web": "node scripts/build-web-bundle.js"
+    "build:web": "node scripts/build-web-bundle.js",
+    "test:e2e": "npm run build:demo && npx playwright test",
+    "test:e2e:ui": "npm run build:demo && npx playwright test --ui"
   },
   "dependencies": {
     "@types/d3": "7.4.3",
@@ -21,6 +23,7 @@
     "powerbi-visuals-utils-formattingmodel": "6.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "esbuild": "^0.24.0",
     "powerbi-visuals-tools": "6.1.0",
     "typescript": "5.5.4"

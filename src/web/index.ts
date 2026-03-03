@@ -3,7 +3,13 @@
  * No Power BI dependency; use the same graph engine and config.
  */
 
-import type { GraphData, RawGraphInput, DataMappingConfig, GraphConfig } from "../graph";
+import type {
+  GraphData,
+  RawGraphInput,
+  DataMappingConfig,
+  GraphConfig,
+  LayoutState,
+} from "../graph";
 import {
   renderGraph,
   mapInputToGraph,
@@ -13,6 +19,29 @@ import {
   DEFAULT_GENERIC_GRAPH_CONFIG,
   type LegacyFullGraph,
 } from "../graph";
+
+const LAYOUT_STORAGE_PREFIX = "inventiv-dataviz-layout-";
+
+function loadLayoutFromStorage(key: string): LayoutState | undefined {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(key) : null;
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as LayoutState;
+    if (parsed && typeof parsed.positions === "object" && parsed.zoom && typeof parsed.zoom.k === "number")
+      return parsed;
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
+function saveLayoutToStorage(key: string, state: LayoutState): void {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    /* ignore */
+  }
+}
 
 export interface WebGraphHandle {
   destroy(): void;
@@ -26,6 +55,12 @@ export interface GenericGraphOptions {
   config?: Partial<GraphConfig>;
   /** Mapping when data is RawGraphInput (rows). */
   mapping?: DataMappingConfig;
+  /** Storage key for layout persistence (e.g. "my-graph"). Saves to localStorage. */
+  layoutKey?: string;
+  /** Restore from this state instead of localStorage. */
+  initialLayoutState?: LayoutState;
+  /** Called when layout changes (debounced). Use for custom persistence. */
+  onLayoutChange?: (state: LayoutState) => void;
 }
 
 /**
@@ -46,7 +81,17 @@ export function createGenericGraph(
   }
 
   const config: GraphConfig = { ...DEFAULT_GENERIC_GRAPH_CONFIG, ...options.config };
-  let handle = renderGraph(container, graphData, config, {});
+  const initialLayout =
+    options.initialLayoutState ??
+    (options.layoutKey ? loadLayoutFromStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey) : undefined);
+  const persistLayout = (state: LayoutState) => {
+    if (options.layoutKey) saveLayoutToStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey, state);
+    options.onLayoutChange?.(state);
+  };
+  let handle = renderGraph(container, graphData, config, {
+    initialLayoutState: initialLayout,
+    onLayoutChange: persistLayout,
+  });
 
   return {
     destroy() {
@@ -54,6 +99,7 @@ export function createGenericGraph(
     },
     updateData(newData: GraphData | RawGraphInput | LegacyFullGraph) {
       const lastPositions = handle.getLastPositions();
+      const lastZoom = handle.getZoomTransform();
       handle.destroy();
       let next: GraphData;
       if ("nodes" in newData && "links" in newData && Array.isArray((newData as GraphData).nodes)) {
@@ -66,11 +112,18 @@ export function createGenericGraph(
         const allIds = new Set(legacy.nodes.map((n) => n.id));
         next = buildLegalEntitiesGraphData(legacy, allIds);
       }
-      handle = renderGraph(container, next, config, { lastPositions });
+      handle = renderGraph(container, next, config, {
+        lastPositions,
+        initialZoomTransform: lastZoom,
+        onLayoutChange: persistLayout,
+      });
     },
     updateOptions(opts: GenericGraphOptions) {
       if (opts.config) Object.assign(config, opts.config);
       if (opts.mapping) options.mapping = opts.mapping;
+      if (opts.layoutKey !== undefined) options.layoutKey = opts.layoutKey;
+      if (opts.initialLayoutState !== undefined) options.initialLayoutState = opts.initialLayoutState;
+      if (opts.onLayoutChange !== undefined) options.onLayoutChange = opts.onLayoutChange;
     },
   };
 }
@@ -81,6 +134,12 @@ export interface LegalEntitiesGraphOptions {
   defaultStartNodeId?: string;
   /** Partial config to merge with Legal Entities defaults. */
   config?: Partial<GraphConfig>;
+  /** Storage key for layout persistence. Saves positions, zoom, and which nodes are opened. */
+  layoutKey?: string;
+  /** Restore from this state instead of localStorage. */
+  initialLayoutState?: LayoutState;
+  /** Called when layout changes (debounced). */
+  onLayoutChange?: (state: LayoutState) => void;
 }
 
 /**
@@ -93,11 +152,26 @@ export function createLegalEntitiesGraph(
   options: LegalEntitiesGraphOptions = {}
 ): WebGraphHandle {
   const defaultStartId = options.defaultStartNodeId ?? data.nodes[0]?.id ?? "";
+  const initialLayout =
+    options.initialLayoutState ??
+    (options.layoutKey ? loadLayoutFromStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey) : undefined);
   let visibleNodeIds = new Set<string>(defaultStartId ? [defaultStartId] : []);
-  let openedNodeIds = new Set<string>(defaultStartId ? [defaultStartId] : []);
+  let openedNodeIds = new Set<string>(); // Start closed (gray) until user clicks; restore from layout if present
+  if (initialLayout?.visibleNodeIds?.length) visibleNodeIds = new Set(initialLayout.visibleNodeIds);
+  if (initialLayout?.openedNodeIds?.length) openedNodeIds = new Set(initialLayout.openedNodeIds);
   let lastPositions = new Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>();
   let lastZoomTransform: ReturnType<ReturnType<typeof renderGraph>["getZoomTransform"]> | undefined;
   const config: GraphConfig = { ...DEFAULT_GRAPH_CONFIG, ...options.config };
+
+  const persistLayout = (state: LayoutState) => {
+    const full: LayoutState = {
+      ...state,
+      visibleNodeIds: Array.from(visibleNodeIds),
+      openedNodeIds: Array.from(openedNodeIds),
+    };
+    if (options.layoutKey) saveLayoutToStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey, full);
+    options.onLayoutChange?.(full);
+  };
 
   function getNeighborIds(nodeId: string): Set<string> {
     const out = new Set<string>();
@@ -121,12 +195,14 @@ export function createLegalEntitiesGraph(
     return renderGraph(container, graphData, config, {
       openedNodeIds,
       onNodeClick: openNode,
-      lastPositions,
+      initialLayoutState: initialLayout,
+      onLayoutChange: persistLayout,
     });
   })();
 
   function render(expandFromNodeId?: string) {
     const graphData = buildLegalEntitiesGraphData(data, visibleNodeIds);
+    if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] LegalEntities render", graphData.nodes.length, "nodes", expandFromNodeId ? "expand:" + expandFromNodeId : "initial");
     if (graphData.nodes.length === 0) {
       engineHandle = null;
       return;
@@ -143,6 +219,7 @@ export function createLegalEntitiesGraph(
       expandFromNodeId,
       lastPositions,
       initialZoomTransform: lastZoomTransform,
+      onLayoutChange: persistLayout,
     });
   }
 
@@ -164,9 +241,19 @@ export function createLegalEntitiesGraph(
     updateOptions(opts: LegalEntitiesGraphOptions) {
       if (opts.defaultStartNodeId !== undefined) options.defaultStartNodeId = opts.defaultStartNodeId;
       if (opts.config) Object.assign(config, opts.config);
+      if (opts.layoutKey !== undefined) options.layoutKey = opts.layoutKey;
+      if (opts.initialLayoutState !== undefined) options.initialLayoutState = opts.initialLayoutState;
+      if (opts.onLayoutChange !== undefined) options.onLayoutChange = opts.onLayoutChange;
     },
   };
 }
 
 // Re-export types for consumers
-export type { GraphData, RawGraphInput, LegacyFullGraph, GraphConfig, DataMappingConfig } from "../graph";
+export type {
+  GraphData,
+  RawGraphInput,
+  LegacyFullGraph,
+  GraphConfig,
+  DataMappingConfig,
+  LayoutState,
+} from "../graph";

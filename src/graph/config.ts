@@ -50,8 +50,12 @@ export interface GraphConfig {
   linkStroke: string;
   /** Link stroke opacity (default 0.6). */
   linkStrokeOpacity: number;
-  /** Link stroke width; if a number, fixed; if function, (weight) => width. */
+  /** Link stroke width; if a number, fixed; if function, (weight) => width. Ignored when linkStrokeWidthMin/Max are set. */
   linkStrokeWidth: number | ((weight: number) => number);
+  /** Min link stroke width when scaling by weight (e.g. shares). Used with linkStrokeWidthMax. */
+  linkStrokeWidthMin?: number;
+  /** Max link stroke width when scaling by weight. With linkStrokeWidthMin, thickness scales between min and max. */
+  linkStrokeWidthMax?: number;
   /** Label text color (default #333). */
   labelColor: string;
   /** Label font size for small nodes (radius <= 14) (default 9). */
@@ -74,6 +78,23 @@ export interface GraphConfig {
   arrowMarkerId: string;
   /** Arrow fill color (default #666). */
   arrowFill: string;
+  /**
+   * Min arrow marker size (SVG units) when scaling by weight.
+   * With arrowMarkerSizeMax, size is mapped linearly from min weight to max weight (e.g. 0–100% for Legal Entities).
+   * Increase for a higher floor (small % arrows stay readable); decrease max so arrows don’t overpower nodes.
+   */
+  arrowMarkerSizeMin?: number;
+  /**
+   * Max arrow marker size (SVG units) when scaling by weight.
+   * With arrowMarkerSizeMin, size is mapped; set lower for a more balanced look vs node size.
+   */
+  arrowMarkerSizeMax?: number;
+  /**
+   * Curve for mapping weight to link thickness and arrow size.
+   * - "linear": t = (weight-min)/(max-min); can make small arrows too small and big ones too big.
+   * - "sqrt": t = sqrt((weight-min)/(max-min)); boosts small weights so small arrows stay visible, softens high end.
+   */
+  weightToSizeCurve?: "linear" | "sqrt";
   /** Zoom scale extent [min, max] (default [0.2, 4]). */
   zoomExtent: [number, number];
   /** Fix node positions after expand so they don't drift (default true). */
@@ -121,6 +142,8 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   linkStroke: "#475569",
   linkStrokeOpacity: 0.7,
   linkStrokeWidth: linkStrokeWidthFromWeight,
+  linkStrokeWidthMin: 2,
+  linkStrokeWidthMax: 4,
   labelColor: "#333",
   labelFontSizeSmall: 9,
   labelFontSizeLarge: 10,
@@ -133,6 +156,10 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   arrowMarkerId: "arrow",
   /** Arrow head color – matches link stroke so arches are visually distinct from nodes. */
   arrowFill: "#334155",
+  /** Arrow size: min/max with weightToSizeCurve "sqrt" so small % stay visible and big % less dominant. */
+  arrowMarkerSizeMin: 6.5,
+  arrowMarkerSizeMax: 7.5,
+  weightToSizeCurve: "sqrt",
   zoomExtent: [0.2, 4],
   fixNodesAfterExpand: true,
 };

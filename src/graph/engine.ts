@@ -4,7 +4,7 @@
  */
 
 import * as d3 from "d3";
-import type { GraphData, MappedNode, MappedLink } from "./types";
+import type { GraphData, MappedNode, MappedLink, LayoutState } from "./types";
 import type { GraphConfig, NodeShape } from "./config";
 
 /** Node with D3 simulation position. */
@@ -38,6 +38,10 @@ export interface GraphEngineRenderOptions {
   lastPositions?: Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>;
   /** Preserve zoom/pan across re-renders (e.g. when expanding nodes). If not set, view stays at default. */
   initialZoomTransform?: d3.ZoomTransform;
+  /** Restore from a persisted layout (positions + zoom). Overrides lastPositions/initialZoomTransform when set. */
+  initialLayoutState?: LayoutState;
+  /** Called when layout changes (debounced). Use to persist state. */
+  onLayoutChange?: (state: LayoutState) => void;
   /** Override container dimensions. */
   width?: number;
   height?: number;
@@ -48,6 +52,8 @@ export interface GraphEngineHandle {
   fitGraph(): void;
   getLastPositions(): Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>;
   getZoomTransform(): d3.ZoomTransform;
+  /** Serializable layout state (positions + zoom) for persistence. */
+  getLayoutState(): LayoutState;
 }
 
 function getNodeRadius(node: MappedNode, config: GraphConfig): number {
@@ -69,11 +75,49 @@ function getNodeFill(node: MappedNode, opened: Set<string>, config: GraphConfig)
   return config.nodeFillClosedByType[type] ?? config.nodeFillClosedDefault;
 }
 
-function getLinkStrokeWidth(weight: number, config: GraphConfig): number {
+/** Normalize weight to [0, 1] for scaling; avoids division by zero when min === max. */
+function normalizedWeight(weight: number, minW: number, maxW: number): number {
+  if (maxW <= minW) return 0.5;
+  return Math.max(0, Math.min(1, (weight - minW) / (maxW - minW)));
+}
+
+/** Apply curve so small weights get more size (readable) and progression is softer. */
+function applyWeightCurve(t: number, curve: "linear" | "sqrt" | undefined): number {
+  if (curve === "sqrt") return Math.sqrt(t);
+  return t;
+}
+
+function getLinkStrokeWidth(
+  weight: number,
+  minW: number,
+  maxW: number,
+  config: GraphConfig
+): number {
+  const minVal = config.linkStrokeWidthMin;
+  const maxVal = config.linkStrokeWidthMax;
+  if (minVal != null && maxVal != null && minVal !== maxVal) {
+    const t = applyWeightCurve(normalizedWeight(weight, minW, maxW), config.weightToSizeCurve);
+    return minVal + t * (maxVal - minVal);
+  }
   if (typeof config.linkStrokeWidth === "function") {
     return config.linkStrokeWidth(weight);
   }
   return config.linkStrokeWidth;
+}
+
+function getArrowMarkerSize(
+  weight: number,
+  minW: number,
+  maxW: number,
+  config: GraphConfig
+): number {
+  const minVal = config.arrowMarkerSizeMin;
+  const maxVal = config.arrowMarkerSizeMax;
+  if (minVal != null && maxVal != null && minVal !== maxVal) {
+    const t = applyWeightCurve(normalizedWeight(weight, minW, maxW), config.weightToSizeCurve);
+    return minVal + t * (maxVal - minVal);
+  }
+  return 8;
 }
 
 /**
@@ -89,11 +133,26 @@ export function renderGraph(
     openedNodeIds = new Set(),
     onNodeClick,
     expandFromNodeId,
-    lastPositions = new Map(),
-    initialZoomTransform,
+    lastPositions: lastPositionsOpt = new Map(),
+    initialZoomTransform: initialZoomTransformOpt,
+    initialLayoutState,
+    onLayoutChange,
     width: optWidth,
     height: optHeight,
   } = options;
+
+  let lastPositions = lastPositionsOpt;
+  let initialZoomTransform = initialZoomTransformOpt;
+  if (initialLayoutState) {
+    lastPositions = new Map(
+      Object.entries(initialLayoutState.positions).map(([id, p]) => [
+        id,
+        { x: p.x, y: p.y, fx: p.fx, fy: p.fy },
+      ])
+    );
+    const z = initialLayoutState.zoom;
+    initialZoomTransform = d3.zoomIdentity.translate(z.x, z.y).scale(z.k);
+  }
 
   const width = optWidth ?? container.clientWidth ?? 400;
   const height = optHeight ?? container.clientHeight ?? 400;
@@ -105,13 +164,16 @@ export function renderGraph(
   const engineNodes: EngineNode[] = Array.from(idToNode.values());
 
   if (engineNodes.length === 0) {
+    if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: 0 nodes, skip");
     return {
       destroy() {},
       fitGraph() {},
       getLastPositions: () => new Map(),
       getZoomTransform: () => d3.zoomIdentity,
+      getLayoutState: (): LayoutState => ({ positions: {}, zoom: { k: 1, x: 0, y: 0 } }),
     };
   }
+  if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: start", engineNodes.length, "nodes");
 
   // Build engine links with fromNode/toNode (arrow at toNode)
   const engineLinks: EngineLink[] = data.links
@@ -131,6 +193,11 @@ export function renderGraph(
         weight: typeof l.weight === "number" && Number.isFinite(l.weight) ? l.weight : 0,
       };
     });
+
+  const minWeight =
+    engineLinks.length === 0 ? 0 : Math.min(...engineLinks.map((l) => l.weight));
+  const maxWeight =
+    engineLinks.length === 0 ? 0 : Math.max(...engineLinks.map((l) => l.weight));
 
   // Layout: restore positions, place new nodes
   const refPos = expandFromNodeId ? lastPositions.get(expandFromNodeId) : undefined;
@@ -168,8 +235,12 @@ export function renderGraph(
     }
   }
 
-  // Clear container
-  d3.select(container).selectAll("*").remove();
+  // Declare early so scheduleLayoutChange (called from zoom "end") can reference it without TDZ
+  const currentLastPositions = new Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>();
+
+  // Clear container (use direct DOM to avoid D3 selecting wrong elements)
+  const el = container as HTMLElement;
+  while (el.firstChild) el.removeChild(el.firstChild);
 
   if (engineNodes.length === 1) {
     d3.select(container)
@@ -196,11 +267,29 @@ export function renderGraph(
   // Preserve zoom/pan across re-renders (e.g. when expanding a node) so the canvas does not jump
   const initialTransform = initialZoomTransform ?? d3.zoomIdentity;
   let zoomTransform = initialTransform;
+  const LAYOUT_DEBOUNCE_MS = 400;
+  let layoutChangeTimeout: ReturnType<typeof setTimeout> | null = null;
+  function scheduleLayoutChange() {
+    if (!onLayoutChange) return;
+    if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] scheduleLayoutChange: debounce");
+    if (layoutChangeTimeout) clearTimeout(layoutChangeTimeout);
+    layoutChangeTimeout = setTimeout(() => {
+      layoutChangeTimeout = null;
+      if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] onLayoutChange: fire");
+      onLayoutChange({
+        positions: Object.fromEntries(currentLastPositions),
+        zoom: { k: zoomTransform.k, x: zoomTransform.x, y: zoomTransform.y },
+      });
+    }, LAYOUT_DEBOUNCE_MS);
+  }
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent(config.zoomExtent)
     .on("start", () => svg.style("cursor", "grabbing"))
-    .on("end", () => svg.style("cursor", "grab"))
+    .on("end", () => {
+      svg.style("cursor", "grab");
+      scheduleLayoutChange();
+    })
     .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
       g.attr("transform", event.transform.toString());
       zoomTransform = event.transform;
@@ -212,21 +301,44 @@ export function renderGraph(
     zoomTransform = initialZoomTransform;
   }
 
-  // Arrow marker
+  // Arrow marker(s): one per link when size scales by weight, else one shared marker
+  const defs = svg.append("defs");
   if (config.showArrows) {
-    svg
-      .append("defs")
-      .append("marker")
-      .attr("id", config.arrowMarkerId)
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 10)
-      .attr("refY", 0)
-      .attr("markerWidth", 8)
-      .attr("markerHeight", 8)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("d", "M0,-4L10,0L0,4")
-      .attr("fill", config.arrowFill);
+    const scaleArrowByWeight =
+      config.arrowMarkerSizeMin != null &&
+      config.arrowMarkerSizeMax != null &&
+      config.arrowMarkerSizeMin !== config.arrowMarkerSizeMax;
+    if (scaleArrowByWeight && engineLinks.length > 0) {
+      engineLinks.forEach((link, i) => {
+        const size = getArrowMarkerSize(link.weight, minWeight, maxWeight, config);
+        defs
+          .append("marker")
+          .attr("id", `${config.arrowMarkerId}-${i}`)
+          .attr("viewBox", "0 -5 10 10")
+          .attr("refX", 10)
+          .attr("refY", 0)
+          .attr("markerWidth", size)
+          .attr("markerHeight", size)
+          .attr("orient", "auto")
+          .append("path")
+          .attr("d", "M0,-4L10,0L0,4")
+          .attr("fill", config.arrowFill);
+      });
+    } else {
+      const size = 8;
+      defs
+        .append("marker")
+        .attr("id", config.arrowMarkerId)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 10)
+        .attr("refY", 0)
+        .attr("markerWidth", size)
+        .attr("markerHeight", size)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-4L10,0L0,4")
+        .attr("fill", config.arrowFill);
+    }
   }
 
   const simulation = d3
@@ -256,16 +368,30 @@ export function renderGraph(
     .force("y", d3.forceY(height / 2).strength(config.centerStrength));
 
   if (expandFromNodeId) simulation.alpha(0.02);
+  simulation.on("end", scheduleLayoutChange);
 
   const linkGroup = g.append("g").attr("class", "links");
+  const scaleArrowByWeight =
+    config.showArrows &&
+    config.arrowMarkerSizeMin != null &&
+    config.arrowMarkerSizeMax != null &&
+    config.arrowMarkerSizeMin !== config.arrowMarkerSizeMax;
   const linkSel = linkGroup
     .selectAll<SVGLineElement, EngineLink>("line")
     .data(engineLinks)
     .join("line")
     .attr("stroke", config.linkStroke)
     .attr("stroke-opacity", config.linkStrokeOpacity)
-    .attr("stroke-width", (d) => getLinkStrokeWidth(d.weight, config))
-    .attr("marker-end", config.showArrows ? `url(#${config.arrowMarkerId})` : null);
+    .attr(
+      "stroke-width",
+      (d) => getLinkStrokeWidth(d.weight, minWeight, maxWeight, config)
+    )
+    .attr(
+      "marker-end",
+      config.showArrows
+        ? (d, i) => (scaleArrowByWeight ? `url(#${config.arrowMarkerId}-${i})` : `url(#${config.arrowMarkerId})`)
+        : null
+    );
 
   const linkLabelSel = linkGroup
     .selectAll<SVGGElement, EngineLink>("g.link-label")
@@ -393,8 +519,6 @@ export function renderGraph(
     .attr("stroke", "#fff")
     .attr("stroke-width", 3);
 
-  const currentLastPositions = new Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>();
-
   simulation.on("tick", () => {
     linkSel.each(function (this: SVGLineElement, d: EngineLink) {
       const x1 = d.fromNode.x ?? 0;
@@ -500,8 +624,10 @@ export function renderGraph(
 
   addToolbar();
 
+  if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: done", engineNodes.length, "nodes");
   return {
     destroy() {
+      if (layoutChangeTimeout) clearTimeout(layoutChangeTimeout);
       simulation.stop();
       svg.remove();
       toolbarDiv?.remove();
@@ -509,5 +635,9 @@ export function renderGraph(
     fitGraph,
     getLastPositions: () => new Map(currentLastPositions),
     getZoomTransform: () => zoomTransform,
+    getLayoutState: (): LayoutState => ({
+      positions: Object.fromEntries(currentLastPositions),
+      zoom: { k: zoomTransform.k, x: zoomTransform.x, y: zoomTransform.y },
+    }),
   };
 }

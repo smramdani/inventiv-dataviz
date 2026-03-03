@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import "./../style/visual.less";
@@ -9,6 +10,7 @@ import {
   DEFAULT_GRAPH_CONFIG,
   type GraphEngineHandle,
   type LegacyFullGraph,
+  type LayoutState,
 } from "./graph";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
@@ -56,6 +58,7 @@ function parseDataViewToLegacyGraph(dataView: powerbi.DataView): LegacyFullGraph
 
 export class Visual implements IVisual {
   private target: HTMLElement;
+  private host: powerbi.extensibility.visual.IVisualHost;
   private formattingSettings: VisualFormattingSettingsModel;
   private formattingSettingsService: FormattingSettingsService;
   private fullGraph: LegacyFullGraph;
@@ -67,6 +70,7 @@ export class Visual implements IVisual {
 
   constructor(options?: VisualConstructorOptions) {
     if (!options?.element) throw new Error("Visual requires constructor options");
+    this.host = options.host;
     this.formattingSettingsService = new FormattingSettingsService();
     this.target = options.element;
     this.fullGraph = { nodes: [], links: [] };
@@ -75,22 +79,50 @@ export class Visual implements IVisual {
   }
 
   public update(options: VisualUpdateOptions): void {
-    if (options.dataViews && options.dataViews[0]) {
+    const dataView = options.dataViews?.[0];
+    if (dataView) {
       this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(
         VisualFormattingSettingsModel,
-        options.dataViews[0]
+        dataView
       );
-      const parsed = parseDataViewToLegacyGraph(options.dataViews[0]);
+      const parsed = parseDataViewToLegacyGraph(dataView);
       if (parsed.nodes.length > 0 || parsed.links.length > 0) {
         this.fullGraph = parsed;
-        if (this.visibleNodeIds.size === 0 && this.openedNodeIds.size === 0 && this.fullGraph.nodes.length > 0) {
+        const layoutState = this.readLayoutState(dataView);
+        if (layoutState) {
+          if (layoutState.visibleNodeIds?.length)
+            this.visibleNodeIds = new Set(layoutState.visibleNodeIds);
+          if (layoutState.openedNodeIds?.length)
+            this.openedNodeIds = new Set(layoutState.openedNodeIds);
+          this.lastPositions = new Map(
+            Object.entries(layoutState.positions).map(([id, p]) => [id, { x: p.x, y: p.y, fx: p.fx, fy: p.fy }])
+          );
+          if (layoutState.zoom) {
+            const z = layoutState.zoom;
+            this.lastZoomTransform = d3.zoomIdentity.translate(z.x, z.y).scale(z.k);
+          }
+        } else if (this.visibleNodeIds.size === 0 && this.openedNodeIds.size === 0 && this.fullGraph.nodes.length > 0) {
           const startId = this.fullGraph.nodes[0].id;
           this.visibleNodeIds = new Set([startId]);
-          this.openedNodeIds = new Set([startId]);
+          // Keep openedNodeIds empty so the start node is shown gray (closed) until the user clicks it
+          this.openedNodeIds = new Set();
         }
       }
     }
     this.render(undefined);
+  }
+
+  private readLayoutState(dataView: powerbi.DataView): LayoutState | null {
+    try {
+      const objects = (dataView.metadata as { objects?: Record<string, { layoutState?: string }> })?.objects;
+      const raw = objects?.explore?.layoutState;
+      if (typeof raw !== "string") return null;
+      const state = JSON.parse(raw) as LayoutState;
+      if (state?.positions && state?.zoom) return state;
+    } catch {
+      /* ignore */
+    }
+    return null;
   }
 
   private getNeighborIds(nodeId: string): Set<string> {
@@ -128,7 +160,9 @@ export class Visual implements IVisual {
       return;
     }
 
-    // Capture zoom and positions from current engine before clearing or destroying (so canvas does not jump on expand)
+    // Capture zoom and positions from current engine before destroying (so canvas does not jump on expand).
+    // Do not clear target here: destroy() already removes the SVG/toolbar; clearing (e.g. textContent = "")
+    // can cause the host to replace the container and make the new graph invisible.
     if (this.engineHandle) {
       this.lastPositions = this.engineHandle.getLastPositions();
       this.lastZoomTransform = this.engineHandle.getZoomTransform();
@@ -136,15 +170,29 @@ export class Visual implements IVisual {
       this.engineHandle = null;
     }
 
-    this.target.textContent = "";
     this.target.style.display = "";
 
+    const self = this;
     this.engineHandle = renderGraph(this.target, graphData, DEFAULT_GRAPH_CONFIG, {
       openedNodeIds: this.openedNodeIds,
       onNodeClick: (id) => this.openNode(id),
       expandFromNodeId,
       lastPositions: this.lastPositions,
       initialZoomTransform: this.lastZoomTransform,
+      onLayoutChange(state) {
+        const full: LayoutState = {
+          ...state,
+          visibleNodeIds: Array.from(self.visibleNodeIds),
+          openedNodeIds: Array.from(self.openedNodeIds),
+        };
+        if (self.host?.persistProperties) {
+          self.host.persistProperties({
+            merge: [
+              { objectName: "explore", properties: { layoutState: JSON.stringify(full) }, selector: {} },
+            ],
+          });
+        }
+      },
     });
   }
 

@@ -4,6 +4,16 @@
 
 ---
 
+## ▶ Live demo (no install)
+
+Try the widgets in your browser without cloning or running a server:
+
+**[Open live demo](https://smramdani.github.io/inventiv-dataviz/)** *(replace `smramdani` with your GitHub username if you forked)*
+
+To publish the demo from this repo: **Settings → Pages → Source: GitHub Actions.** The [workflow](.github/workflows/deploy-demo.yml) builds and deploys the demo on every push to `main`/`master`.
+
+---
+
 ## What is this?
 
 **Inventiv DataViz** is a set of **ready‑to‑drop graph visuals** for the web and for Power BI. No heavy framework, no “first configure 47 things” — you get **interactive node‑and‑link graphs** (zoom, pan, drag, click‑to‑expand) with minimal setup.
@@ -168,7 +178,9 @@ InventivDataviz.createLegalEntitiesGraph(container, data, {
 });
 ```
 
-More options and data shapes: [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md), [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
+Edge width and arrow size scale with each link’s **weight** (min/max in config). Map your numeric column (e.g. shares, volume) via `linkWeightField` in the mapping — see [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md). More options: [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
+
+**Layout persistence:** Positions, zoom and (for Legal Entities) which nodes are opened can be saved and restored. On the web, pass `layoutKey: "my-graph"` to save/restore in `localStorage`, or use `onLayoutChange(state)` and `initialLayoutState` for custom storage. In Power BI, layout is persisted with the report. See [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md).
 
 ### Power BI (one-time import)
 
@@ -221,7 +233,10 @@ npm run build:web    # Web bundle (dist/inventiv-dataviz.js, .esm.js)
 npm run build:demo   # Demo app bundle (demo/dist/visual.js)
 npm run demo         # Serve demo at http://localhost:3000
 npm run package      # Power BI .pbiviz (dist/inventivLegalEntitiesGraph.*.pbiviz)
+npm run test:e2e     # Automated E2E: build demo, start server, run Playwright tests (graph load + click, no disappear)
 ```
+
+**Tests :** les tests automatisés (E2E Playwright) sont dans **[tests/](tests/)**. Un seul dossier `tests/` ; la config est `playwright.config.js` à la racine. Les dossiers `test-results/` et `playwright-report/` sont générés à l’exécution (ignorés par Git).
 
 ---
 
@@ -230,3 +245,4 @@ npm run package      # Power BI .pbiviz (dist/inventivLegalEntitiesGraph.*.pbivi
 - **Getting started:** [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) (step-by-step) and [examples/README.md](examples/README.md) (minimal examples).
 - **Data shapes and mapping:** [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md).
 - **Vision, design, roadmap:** [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
+- **Layout persistence (plan):** [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore node positions and zoom so refresh or reopen keeps the same layout.

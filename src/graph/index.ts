@@ -9,6 +9,7 @@ export type {
   GraphData,
   DataRow,
   RawGraphInput,
+  LayoutState,
 } from "./types";
 
 export type {

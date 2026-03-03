@@ -36,6 +36,38 @@ and map them to the internal graph structure.
   - Links: `sourceField`, `targetField`, optional `idField`, `labelField`, `weightField`, `attributePairs`, `attributeColumns`.  
   - Nodes: `nodes.source === "nodes"` with `idField`, `labelField`, `typeField`, `attributePairs`, `attributeColumns`.
 
+## Edge width and arrow size
+
+**Thickness** and **arrow size** are driven by each link’s **`weight`**, scaled **linearly** between config min and max. Map your numeric column to that weight:
+
+- **Row-based:** set **`linkWeightField`** to the column name (e.g. `"volume"`, `"shares"`). Default is `"weight"`.
+- **Structured (nodes + links):** each link should have a **`weight`** property, or use **`weightField`** in the link mapping (e.g. `"shares"`).
+- **Legal Entities:** the adapter uses **share % (0–100)** as weight so the visual matches the label; no extra mapping.
+
+**Tuning size vs nodes:** Set **`arrowMarkerSizeMin`** / **`arrowMarkerSizeMax`** and **`linkStrokeWidthMin`** / **`linkStrokeWidthMax`**. Use **`weightToSizeCurve: "sqrt"`** so small % stay visible and high % don’t dominate (linear can make small arrows tiny and big ones huge). Example:
+
+```ts
+createLegalEntitiesGraph(container, data, {
+  config: {
+    arrowMarkerSizeMin: 6.5,
+    arrowMarkerSizeMax: 7.5,
+    linkStrokeWidthMin: 2,
+    linkStrokeWidthMax: 4,
+    weightToSizeCurve: "sqrt",
+  },
+});
+```
+
+One example (rows):
+
+```ts
+createRowBasedMapping({
+  sourceField: "source",
+  targetField: "target",
+  linkWeightField: "volume",  // your column → link.weight → edge width & arrow size
+});
+```
+
 ## Example: row-based with attribute pairs
 
 Input rows (e.g. from Power BI or JSON):

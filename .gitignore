@@ -6,3 +6,8 @@ webpack.statistics*.html
 *.log
 test/dist/
 demo/dist/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

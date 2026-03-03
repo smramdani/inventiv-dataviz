@@ -239,15 +239,14 @@
         el.style.display = '';
 
         if (id === 'legal-entities') {
-          var plugin = window.inventivLegalEntitiesGraph_DEBUG || window.inventivLegalEntitiesGraph;
-          if (!plugin || typeof plugin.create !== 'function') {
+          var createLegal = window.__inventivCreateLegalEntitiesGraph;
+          var legacyGraph = window.__inventivDemoLegacyGraph;
+          if (!createLegal || !legacyGraph) {
             showError('Demo bundle not found. From repo root run: npm run build:demo');
             return;
           }
           try {
-            currentVisual = plugin.create({ element: el });
-            var demoData = window.__inventivDemoDataView;
-            currentVisual.update({ dataViews: demoData ? [demoData] : [] });
+            currentVisual = createLegal(el, legacyGraph, { layoutKey: 'demo-legal-entities' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }
@@ -260,7 +259,7 @@
             return;
           }
           try {
-            currentVisual = createLegal(el, legacyGraph, { config: customConfig });
+            currentVisual = createLegal(el, legacyGraph, { config: customConfig, layoutKey: 'demo-legal-entities-custom' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }
@@ -286,7 +285,7 @@
             return;
           }
           try {
-            currentVisual = createGeneric(el, { rows: genericRows }, { config: customGenericConfig });
+            currentVisual = createGeneric(el, { rows: genericRows }, { config: customGenericConfig, layoutKey: 'demo-generic-custom' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }
@@ -300,7 +299,7 @@
             return;
           }
           try {
-            currentVisual = createGeneric(el, { rows: speciesRows }, { mapping: mappingWithType, config: speciesShapeConfig });
+            currentVisual = createGeneric(el, { rows: speciesRows }, { mapping: mappingWithType, config: speciesShapeConfig, layoutKey: 'demo-species' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }
@@ -314,7 +313,7 @@
             return;
           }
           try {
-            currentVisual = createGeneric(el, { rows: sentenceRows }, { mapping: mappingWithType, config: sentenceShapeConfig });
+            currentVisual = createGeneric(el, { rows: sentenceRows }, { mapping: mappingWithType, config: sentenceShapeConfig, layoutKey: 'demo-sentence' });
           } catch (e) {
             showError('Failed to run demo: ' + e.message);
           }

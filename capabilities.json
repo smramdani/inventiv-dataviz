@@ -37,6 +37,10 @@
         "startNode": {
           "displayName": "Start node (PoC uses built-in data)",
           "type": { "text": true }
+        },
+        "layoutState": {
+          "displayName": "Layout state (positions, zoom, opened nodes)",
+          "type": { "text": true }
         }
       }
     }

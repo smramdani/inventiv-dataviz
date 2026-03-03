@@ -43,3 +43,12 @@ export interface RawGraphInput {
   /** Explicit links array (e.g. from a "links" table or JSON key). */
   links?: DataRow[];
 }
+
+/** Serializable layout state for persistence (positions + zoom; Legal Entities add visible/opened). */
+export interface LayoutState {
+  positions: Record<string, { x: number; y: number; fx?: number | null; fy?: number | null }>;
+  zoom: { k: number; x: number; y: number };
+  visibleNodeIds?: string[];
+  openedNodeIds?: string[];
+  dataFingerprint?: string;
+}

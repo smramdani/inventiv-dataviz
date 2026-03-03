@@ -74,6 +74,8 @@ export function legacyToGraphData(legacy: LegacyFullGraph): GraphData {
 /**
  * Build GraphData for the engine from a legacy Legal Entities graph:
  * visible nodes/links only, share % on link labels, arrow at entity node.
+ * Link weight is set to sharePct (0–100) so stroke width and arrow size
+ * are proportional to the displayed percentage, not raw shares.
  */
 export function buildLegalEntitiesGraphData(
   fullLegacy: LegacyFullGraph,
@@ -110,7 +112,7 @@ export function buildLegalEntitiesGraphData(
     return {
       source: l.source,
       target: l.target,
-      weight: l.shares,
+      weight: sharePct,
       label: `${sharePct.toFixed(0)}%`,
       arrowAt: arrowAt as "source" | "target",
     };
