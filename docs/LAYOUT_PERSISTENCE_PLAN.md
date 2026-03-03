@@ -15,7 +15,7 @@
 | **Visible node ids** | Legal Entities only | Which nodes are shown (expand state) |
 | **Opened node ids** | Legal Entities only | Which nodes are “open” for styling |
 
-Optional: a **data fingerprint** (e.g. hash of node/link ids or row count) to avoid restoring a layout from different data.
+Optional: a **data fingerprint** in the saved state (for debugging). Layout is **not** rejected when data changes; we do a partial restore (see §4).
 
 **Serializable shape** (for storage / Power BI):
 
@@ -47,9 +47,11 @@ Use **debounce** (e.g. 300 ms) so we don’t persist on every tick.
 
 | Context | Storage | Key / identifier |
 |--------|---------|-------------------|
-| **Web (default)** | `localStorage` | e.g. `inventiv-dataviz-layout-${graphId}`. `graphId` = option from app or hash of container id / URL. |
-| **Web (optional)** | Callbacks only | App provides `onLayoutChange(state)` and `getInitialLayout(): LayoutState | undefined`. App stores in backend, URL, etc. |
+| **Web (default)** | `localStorage` | `inventiv-dataviz-layout-${layoutKey}`. `layoutKey` is passed by the app (see below). |
+| **Web (optional)** | Callbacks only | App provides `onLayoutChange(state)` and `initialLayoutState`. App stores in backend, URL, etc. |
 | **Power BI** | Visual properties | Persist `LayoutState` (JSON) in a property that Power BI saves with the report (e.g. format pane or custom object). |
+
+**Identifying the graph (layoutKey):** To avoid loading one graph’s layout into another, each graph instance must have a **stable unique key** chosen by the application (e.g. report id, dashboard view id, page slug). This key **must not** be derived from the list of node IDs: when data is partially updated (nodes added/removed), the same graph still uses the same key so we can do a partial restore (keep positions for existing nodes, default placement for new ones). Different graphs use different keys (e.g. `'report-123'`, `'demo-legal-entities'`).
 
 Prefer **pluggable persistence**: engine (or wrapper) exposes “current layout state” and “restore this state”; the **caller** (or an optional built-in adapter) decides where it’s stored (localStorage, API, Power BI properties).
 
@@ -60,7 +62,7 @@ Prefer **pluggable persistence**: engine (or wrapper) exposes “current layout 
 - **First render** (or after data load): if a saved `LayoutState` exists and is valid for current data:
   - Pass `lastPositions` and `initialZoomTransform` from state (already supported).
   - For Legal Entities: initialize `visibleNodeIds` and `openedNodeIds` from state so the graph opens with the same expansion.
-- **Validation:** if `dataFingerprint` is used, restore only when it matches current data; otherwise optionally restore only positions for nodes that still exist (drop stale ids).
+- **Partial restore:** we always use the saved layout: positions for node IDs that still exist are applied; positions for removed nodes are ignored; new nodes (no saved position) get default placement. The **layoutKey** (chosen by the app, not from node IDs) ensures we load the layout for the right graph.
 
 ---
 

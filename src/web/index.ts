@@ -22,24 +22,49 @@ import {
 
 const LAYOUT_STORAGE_PREFIX = "inventiv-dataviz-layout-";
 
+/** Stable fingerprint for the current graph so we never apply another graph's layout. */
+function computeDataFingerprint(nodeIds: string[]): string {
+  return [...nodeIds].sort().join(",");
+}
+
+const LAYOUT_DEBUG = true; // set to false to reduce console noise
+
 function loadLayoutFromStorage(key: string): LayoutState | undefined {
   try {
-    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(key) : null;
-    if (!raw) return undefined;
+    if (typeof localStorage === "undefined") {
+      if (LAYOUT_DEBUG) console.warn("[Inventiv DataViz] loadLayout: localStorage unavailable");
+      return undefined;
+    }
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      if (LAYOUT_DEBUG) console.debug("[Inventiv DataViz] loadLayout: no data for key", key);
+      return undefined;
+    }
     const parsed = JSON.parse(raw) as LayoutState;
-    if (parsed && typeof parsed.positions === "object" && parsed.zoom && typeof parsed.zoom.k === "number")
-      return parsed;
-  } catch {
-    /* ignore */
+    if (!parsed || typeof parsed.positions !== "object" || !parsed.zoom || typeof parsed.zoom.k !== "number") {
+      if (LAYOUT_DEBUG) console.warn("[Inventiv DataViz] loadLayout: invalid shape for key", key, parsed);
+      return undefined;
+    }
+    const posCount = Object.keys(parsed.positions).length;
+    if (LAYOUT_DEBUG) console.debug("[Inventiv DataViz] loadLayout: restored", key, "positions:", posCount, "visibleNodeIds:", parsed.visibleNodeIds?.length ?? 0);
+    return parsed;
+  } catch (e) {
+    if (LAYOUT_DEBUG) console.warn("[Inventiv DataViz] loadLayout: parse error for key", key, e);
+    return undefined;
   }
-  return undefined;
 }
 
 function saveLayoutToStorage(key: string, state: LayoutState): void {
   try {
-    if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(state));
-  } catch {
-    /* ignore */
+    if (typeof localStorage === "undefined") {
+      if (LAYOUT_DEBUG) console.warn("[Inventiv DataViz] saveLayout: localStorage unavailable");
+      return;
+    }
+    const posCount = Object.keys(state.positions).length;
+    localStorage.setItem(key, JSON.stringify(state));
+    if (LAYOUT_DEBUG) console.debug("[Inventiv DataViz] saveLayout: saved", key, "positions:", posCount);
+  } catch (e) {
+    if (LAYOUT_DEBUG) console.warn("[Inventiv DataViz] saveLayout: failed for key", key, e);
   }
 }
 
@@ -55,7 +80,11 @@ export interface GenericGraphOptions {
   config?: Partial<GraphConfig>;
   /** Mapping when data is RawGraphInput (rows). */
   mapping?: DataMappingConfig;
-  /** Storage key for layout persistence (e.g. "my-graph"). Saves to localStorage. */
+  /**
+   * Unique identifier for this graph instance. Used to store/load layout in localStorage so
+   * each graph has its own layout. Must be stable and not derived from node IDs (so layout
+   * is preserved when data is partially updated). Example: report id, dashboard view id.
+   */
   layoutKey?: string;
   /** Restore from this state instead of localStorage. */
   initialLayoutState?: LayoutState;
@@ -134,7 +163,10 @@ export interface LegalEntitiesGraphOptions {
   defaultStartNodeId?: string;
   /** Partial config to merge with Legal Entities defaults. */
   config?: Partial<GraphConfig>;
-  /** Storage key for layout persistence. Saves positions, zoom, and which nodes are opened. */
+  /**
+   * Unique identifier for this graph instance. Used to store/load layout (positions, zoom,
+   * opened nodes). Must be stable and not derived from node IDs. Example: report id.
+   */
   layoutKey?: string;
   /** Restore from this state instead of localStorage. */
   initialLayoutState?: LayoutState;
@@ -152,9 +184,11 @@ export function createLegalEntitiesGraph(
   options: LegalEntitiesGraphOptions = {}
 ): WebGraphHandle {
   const defaultStartId = options.defaultStartNodeId ?? data.nodes[0]?.id ?? "";
+  const storageKey = options.layoutKey ? LAYOUT_STORAGE_PREFIX + options.layoutKey : null;
   const initialLayout =
     options.initialLayoutState ??
-    (options.layoutKey ? loadLayoutFromStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey) : undefined);
+    (storageKey ? loadLayoutFromStorage(storageKey) : undefined);
+  if (LAYOUT_DEBUG && options.layoutKey) console.debug("[Inventiv DataViz] LegalEntities: layoutKey=", options.layoutKey, "initialLayout=", initialLayout ? "yes" : "no");
   let visibleNodeIds = new Set<string>(defaultStartId ? [defaultStartId] : []);
   let openedNodeIds = new Set<string>(); // Start closed (gray) until user clicks; restore from layout if present
   if (initialLayout?.visibleNodeIds?.length) visibleNodeIds = new Set(initialLayout.visibleNodeIds);
@@ -168,8 +202,10 @@ export function createLegalEntitiesGraph(
       ...state,
       visibleNodeIds: Array.from(visibleNodeIds),
       openedNodeIds: Array.from(openedNodeIds),
+      dataFingerprint: computeDataFingerprint(data.nodes.map((n) => n.id)),
     };
     if (options.layoutKey) saveLayoutToStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey, full);
+    if (LAYOUT_DEBUG && options.layoutKey) console.debug("[Inventiv DataViz] LegalEntities: persistLayout called, visibleNodeIds=", visibleNodeIds.size);
     options.onLayoutChange?.(full);
   };
 

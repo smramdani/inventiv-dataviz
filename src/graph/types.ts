@@ -44,7 +44,11 @@ export interface RawGraphInput {
   links?: DataRow[];
 }
 
-/** Serializable layout state for persistence (positions + zoom; Legal Entities add visible/opened). */
+/**
+ * Serializable layout state for persistence (positions + zoom; Legal Entities add visible/opened).
+ * When restoring with data that has changed (nodes added/removed): positions for existing node
+ * IDs are applied; positions for removed nodes are ignored; new nodes get default placement.
+ */
 export interface LayoutState {
   positions: Record<string, { x: number; y: number; fx?: number | null; fy?: number | null }>;
   zoom: { k: number; x: number; y: number };

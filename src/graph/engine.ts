@@ -1,5 +1,5 @@
 /**
- * Generic graph engine: D3 force simulation, zoom, pan, drag, render.
+ * Generic graph engine: layout (positions + zoom), pan, drag, render.
  * No Power BI or Legal-Entities-specific logic; driven by GraphData + GraphConfig.
  */
 
@@ -7,7 +7,7 @@ import * as d3 from "d3";
 import type { GraphData, MappedNode, MappedLink, LayoutState } from "./types";
 import type { GraphConfig, NodeShape } from "./config";
 
-/** Node with D3 simulation position. */
+/** Node with position (x, y, optional fixed fx, fy). */
 export type EngineNode = MappedNode & {
   x?: number;
   y?: number;
@@ -141,19 +141,6 @@ export function renderGraph(
     height: optHeight,
   } = options;
 
-  let lastPositions = lastPositionsOpt;
-  let initialZoomTransform = initialZoomTransformOpt;
-  if (initialLayoutState) {
-    lastPositions = new Map(
-      Object.entries(initialLayoutState.positions).map(([id, p]) => [
-        id,
-        { x: p.x, y: p.y, fx: p.fx, fy: p.fy },
-      ])
-    );
-    const z = initialLayoutState.zoom;
-    initialZoomTransform = d3.zoomIdentity.translate(z.x, z.y).scale(z.k);
-  }
-
   const width = optWidth ?? container.clientWidth ?? 400;
   const height = optHeight ?? container.clientHeight ?? 400;
 
@@ -162,6 +149,23 @@ export function renderGraph(
   const idToNode = new Map<string, EngineNode>();
   data.nodes.forEach((n) => idToNode.set(n.id, { ...n }));
   const engineNodes: EngineNode[] = Array.from(idToNode.values());
+
+  // Partial restore: use saved positions only for nodes that still exist; new nodes get default placement.
+  // Use String(id) so lookup works after JSON round-trip (object keys are always strings).
+  let lastPositions = lastPositionsOpt;
+  let initialZoomTransform = initialZoomTransformOpt;
+  if (initialLayoutState) {
+    const savedPosCount = Object.keys(initialLayoutState.positions).length;
+    lastPositions = new Map(
+      Object.entries(initialLayoutState.positions).map(([id, p]) => [
+        String(id),
+        { x: p.x, y: p.y, fx: p.fx, fy: p.fy },
+      ])
+    );
+    const z = initialLayoutState.zoom;
+    initialZoomTransform = d3.zoomIdentity.translate(z.x, z.y).scale(z.k);
+    if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] engine: initialLayoutState applied, savedPositions=", savedPosCount);
+  } else if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] engine: no initialLayoutState");
 
   if (engineNodes.length === 0) {
     if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: 0 nodes, skip");
@@ -199,20 +203,21 @@ export function renderGraph(
   const maxWeight =
     engineLinks.length === 0 ? 0 : Math.max(...engineLinks.map((l) => l.weight));
 
-  // Layout: restore positions, place new nodes
-  const refPos = expandFromNodeId ? lastPositions.get(expandFromNodeId) : undefined;
+  // Layout: restore positions for nodes that have a saved position; place others (new or unknown) by default
+  const refPos = expandFromNodeId ? lastPositions.get(String(expandFromNodeId)) : undefined;
   const newNodes: EngineNode[] = [];
   for (const d of engineNodes) {
-    const prev = lastPositions.get(d.id);
+    const prev = lastPositions.get(String(d.id));
     if (prev) {
       d.x = prev.x;
       d.y = prev.y;
       d.fx = prev.fx !== undefined && prev.fx !== null ? prev.fx : prev.x;
       d.fy = prev.fy !== undefined && prev.fy !== null ? prev.fy : prev.y;
     } else {
-      newNodes.push(d);
+      newNodes.push(d); // no saved position: new node or node was removed from saved set
     }
   }
+  if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] engine: restore result matched=", engineNodes.length - newNodes.length, "newNodes=", newNodes.length, "totalNodes=", engineNodes.length);
 
   const placeRadius = config.placeNewNodesRadius;
   const numNew = newNodes.length;
@@ -235,8 +240,17 @@ export function renderGraph(
     }
   }
 
-  // Declare early so scheduleLayoutChange (called from zoom "end") can reference it without TDZ
+  // Shared map of current positions for layout snapshot and restore.
+  // Fill immediately so a zoom "end" triggered by initialZoomTransform below does not persist an empty layout.
   const currentLastPositions = new Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>();
+  for (const d of engineNodes) {
+    currentLastPositions.set(String(d.id), {
+      x: d.x ?? 0,
+      y: d.y ?? 0,
+      fx: d.fx,
+      fy: d.fy,
+    });
+  }
 
   // Clear container (use direct DOM to avoid D3 selecting wrong elements)
   const el = container as HTMLElement;
@@ -267,30 +281,14 @@ export function renderGraph(
   // Preserve zoom/pan across re-renders (e.g. when expanding a node) so the canvas does not jump
   const initialTransform = initialZoomTransform ?? d3.zoomIdentity;
   let zoomTransform = initialTransform;
-  const LAYOUT_DEBOUNCE_MS = 400;
-  let layoutChangeTimeout: ReturnType<typeof setTimeout> | null = null;
   function getLayoutSnapshot() {
     return {
       positions: Object.fromEntries(currentLastPositions),
       zoom: { k: zoomTransform.k, x: zoomTransform.x, y: zoomTransform.y },
+      dataFingerprint: engineNodes.map((d) => d.id).sort().join(","),
     };
   }
-  function scheduleLayoutChange() {
-    if (!onLayoutChange) return;
-    if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] scheduleLayoutChange: debounce");
-    if (layoutChangeTimeout) clearTimeout(layoutChangeTimeout);
-    layoutChangeTimeout = setTimeout(() => {
-      layoutChangeTimeout = null;
-      if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] onLayoutChange: fire");
-      onLayoutChange(getLayoutSnapshot());
-    }, LAYOUT_DEBOUNCE_MS);
-  }
-  /** Persist layout immediately (e.g. on drag end) so changes are not lost before debounce. */
   function flushLayoutChange() {
-    if (layoutChangeTimeout) {
-      clearTimeout(layoutChangeTimeout);
-      layoutChangeTimeout = null;
-    }
     if (onLayoutChange) {
       if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] onLayoutChange: flush");
       onLayoutChange(getLayoutSnapshot());
@@ -354,35 +352,6 @@ export function renderGraph(
         .attr("fill", config.arrowFill);
     }
   }
-
-  const simulation = d3
-    .forceSimulation<EngineNode>(engineNodes)
-    .force(
-      "link",
-      d3
-        .forceLink<EngineNode, EngineLink>(engineLinks)
-        .id((d) => (d as EngineNode).id)
-        .distance(config.linkDistance)
-        .strength(config.linkStrength)
-    )
-    .force(
-      "charge",
-      d3
-        .forceManyBody<EngineNode>()
-        .strength(config.chargeStrength)
-        .distanceMax(config.chargeDistanceMax)
-        .distanceMin(config.chargeDistanceMin)
-    )
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force(
-      "collision",
-      d3.forceCollide<EngineNode>().radius((d) => getNodeRadius(d, config) + config.collisionRadiusPadding)
-    )
-    .force("x", d3.forceX(width / 2).strength(config.centerStrength))
-    .force("y", d3.forceY(height / 2).strength(config.centerStrength));
-
-  if (expandFromNodeId) simulation.alpha(0.02);
-  simulation.on("end", scheduleLayoutChange);
 
   const linkGroup = g.append("g").attr("class", "links");
   const scaleArrowByWeight =
@@ -451,19 +420,19 @@ export function renderGraph(
             n.fy = n.y ?? 0;
           }
           nodeSel.filter((n) => n === d).style("cursor", "grabbing");
-          if (!event.active) simulation.alphaTarget(0.3).restart();
         })
         .on("drag", (event, d) => {
           justDragged = true;
-          d.fx = event.x;
-          d.fy = event.y;
+          d.x = d.fx = event.x;
+          d.y = d.fy = event.y;
+          updateVisual();
         })
         .on("end", (event, d) => {
           nodeSel.filter((n) => n === d).style("cursor", null);
-          if (!event.active) simulation.alphaTarget(0);
-          d.fx = event.x;
-          d.fy = event.y;
-          currentLastPositions.set(d.id, { x: event.x, y: event.y, fx: event.x, fy: event.y });
+          d.x = d.fx = event.x;
+          d.y = d.fy = event.y;
+          currentLastPositions.set(String(d.id), { x: event.x, y: event.y, fx: event.x, fy: event.y });
+          updateVisual();
           flushLayoutChange();
         })
     )
@@ -535,7 +504,7 @@ export function renderGraph(
     .attr("stroke", "#fff")
     .attr("stroke-width", 3);
 
-  simulation.on("tick", () => {
+  function updateVisual() {
     linkSel.each(function (this: SVGLineElement, d: EngineLink) {
       const x1 = d.fromNode.x ?? 0;
       const y1 = d.fromNode.y ?? 0;
@@ -569,14 +538,15 @@ export function renderGraph(
     }
     nodeSel.attr("transform", (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
     for (const d of engineNodes) {
-      currentLastPositions.set(d.id, {
+      currentLastPositions.set(String(d.id), {
         x: d.x ?? 0,
         y: d.y ?? 0,
         fx: d.fx,
         fy: d.fy,
       });
     }
-  });
+  }
+  updateVisual();
 
   let toolbarDiv: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
 
@@ -643,8 +613,6 @@ export function renderGraph(
   if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: done", engineNodes.length, "nodes");
   return {
     destroy() {
-      if (layoutChangeTimeout) clearTimeout(layoutChangeTimeout);
-      simulation.stop();
       svg.remove();
       toolbarDiv?.remove();
     },
