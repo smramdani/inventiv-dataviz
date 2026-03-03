@@ -68,9 +68,10 @@ Serve the page over HTTP (e.g. `npx serve .` in the project root) so the script 
 ## 3. Richer cases
 
 - **Custom colors/sizes:** pass a third argument `{ config: { ... } }`. See the main [README](../README.md#options-customize-look-and-behavior).
+- **Layout persistence:** pass `layoutKey: "my-graph"` (stable id, not from node IDs) so positions and zoom are saved in localStorage on drag/zoom end and restored on load; when data changes, existing nodes keep positions and new nodes get default placement. See [LAYOUT_PERSISTENCE_PLAN.md](LAYOUT_PERSISTENCE_PLAN.md).
 - **Update data later:** the API returns a handle; call `handle.updateData(newData)`.
 - **ESM / bundler:** import from `inventiv-dataviz.esm.js` – see [README – Web usage ESM](../README.md#web---esm-vite-react-etc).
-- **Power BI:** run `npm run package`, then in Power BI Desktop import `dist/inventivLegalEntitiesGraph.1.0.0.0.pbiviz`. See [README – Power BI](../README.md#power-bi-one-time-import).
+- **Power BI:** run `npm run package`, then in Power BI Desktop import `dist/inventivLegalEntitiesGraph.*.pbiviz`. See [README – Power BI](../README.md#power-bi-one-time-import).
 - **Full demo:** run `npm run demo` and open http://localhost:3000 – multiple widgets and themes.
 
 ---

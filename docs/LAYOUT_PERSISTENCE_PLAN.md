@@ -35,11 +35,11 @@ interface LayoutState {
 
 ## 2. When to save
 
-- **After layout changes:** on simulation “end” (e.g. `simulation.on("end", …)`) and after drag end.
-- **After zoom/pan:** on zoom “end” (debounced, e.g. 300–500 ms).
-- **After expand/collapse (Legal Entities):** when `visibleNodeIds` / `openedNodeIds` change (e.g. after `openNode` and render).
+- **After drag end:** when the user releases a node, positions are flushed immediately (and, if `layoutKey` is set, written to localStorage).
+- **After zoom/pan end:** when the user releases the gesture, the same flush runs.
+- **Legal Entities:** on expand we re-render in memory; the next drag or zoom end persists the full state (visibleNodeIds, openedNodeIds).
 
-Use **debounce** (e.g. 300 ms) so we don’t persist on every tick.
+**Current behaviour:** No force simulation; layout is position-based only. The engine fills `currentLastPositions` before applying initial zoom so a zoom end on load does not overwrite storage with an empty layout.
 
 ---
 

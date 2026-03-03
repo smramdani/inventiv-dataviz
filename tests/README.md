@@ -4,7 +4,7 @@ Tous les **tests automatisés** du projet sont ici.
 
 ## Contenu
 
-- **E2E (démo)** — `demo.spec.js` : tests Playwright sur la page de démo (chargement du graphe, clic sur un nœud, pas de disparition, pas d’erreur console).
+- **E2E (démo)** — `demo.spec.js` : chargement du graphe Legal Entities, clic pour expand, pas de disparition ; **persistance du layout** : drag d’un nœud, vérification du localStorage, rechargement, vérification que le layout est bien restauré (positions non vides).
 
 ## Lancer les tests
 
