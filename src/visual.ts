@@ -134,12 +134,42 @@ export class Visual implements IVisual {
     return out;
   }
 
+  /** Nodes that are opened by click OR have all their incident edges already visible (no new nodes would appear). */
+  private getEffectiveOpenedNodeIds(): Set<string> {
+    const effective = new Set(this.openedNodeIds);
+    for (const node of this.fullGraph.nodes) {
+      if (!this.visibleNodeIds.has(node.id)) continue;
+      const incidentLinks = this.fullGraph.links.filter((l) => l.source === node.id || l.target === node.id);
+      const allNeighborsVisible = incidentLinks.every((l) => {
+        const other = l.source === node.id ? l.target : l.source;
+        return this.visibleNodeIds.has(other);
+      });
+      if (incidentLinks.length === 0 || allNeighborsVisible) effective.add(node.id);
+    }
+    return effective;
+  }
+
   private openNode(nodeId: string): void {
     this.openedNodeIds.add(nodeId);
     const neighbors = this.getNeighborIds(nodeId);
     neighbors.forEach((id) => this.visibleNodeIds.add(id));
     this.visibleNodeIds.add(nodeId);
     this.render(nodeId);
+  }
+
+  private openAll(): void {
+    this.fullGraph.nodes.forEach((n) => {
+      this.visibleNodeIds.add(n.id);
+      this.openedNodeIds.add(n.id);
+    });
+    this.render();
+  }
+
+  private closeAll(): void {
+    const startId = this.fullGraph.nodes.length > 0 ? this.fullGraph.nodes[0].id : "";
+    this.visibleNodeIds = new Set(startId ? [startId] : []);
+    this.openedNodeIds = new Set();
+    this.render();
   }
 
   private render(expandFromNodeId?: string): void {
@@ -174,8 +204,10 @@ export class Visual implements IVisual {
 
     const self = this;
     this.engineHandle = renderGraph(this.target, graphData, DEFAULT_GRAPH_CONFIG, {
-      openedNodeIds: this.openedNodeIds,
+      openedNodeIds: this.getEffectiveOpenedNodeIds(),
       onNodeClick: (id) => this.openNode(id),
+      onOpenAll: () => this.openAll(),
+      onCloseAll: () => this.closeAll(),
       expandFromNodeId,
       lastPositions: this.lastPositions,
       initialZoomTransform: this.lastZoomTransform,

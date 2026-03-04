@@ -42,6 +42,10 @@ export interface GraphEngineRenderOptions {
   initialLayoutState?: LayoutState;
   /** Called when layout changes (debounced). Use to persist state. */
   onLayoutChange?: (state: LayoutState) => void;
+  /** Optional: called when "Tout Ouvrir" toolbar button is clicked (Legal Entities: expand all). */
+  onOpenAll?: () => void;
+  /** Optional: called when "Tout Fermer" toolbar button is clicked (Legal Entities: collapse to start). */
+  onCloseAll?: () => void;
   /** Override container dimensions. */
   width?: number;
   height?: number;
@@ -137,6 +141,8 @@ export function renderGraph(
     initialZoomTransform: initialZoomTransformOpt,
     initialLayoutState,
     onLayoutChange,
+    onOpenAll,
+    onCloseAll,
     width: optWidth,
     height: optHeight,
   } = options;
@@ -586,6 +592,22 @@ export function renderGraph(
       .attr("title", "Fit graph")
       .text("Fit")
       .on("click", fitGraph);
+    if (onOpenAll) {
+      toolbarDiv
+        .append("button")
+        .attr("type", "button")
+        .attr("title", "Tout Ouvrir")
+        .text("Tout Ouvrir")
+        .on("click", onOpenAll);
+    }
+    if (onCloseAll) {
+      toolbarDiv
+        .append("button")
+        .attr("type", "button")
+        .attr("title", "Tout Fermer")
+        .text("Tout Fermer")
+        .on("click", onCloseAll);
+    }
   }
 
   function fitGraph() {

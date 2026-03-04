@@ -4,7 +4,14 @@ Tous les **tests automatisés** du projet sont ici.
 
 ## Contenu
 
-- **E2E (démo)** — `demo.spec.js` : chargement du graphe Legal Entities, clic pour expand, pas de disparition ; **persistance du layout** : drag d’un nœud, vérification du localStorage, rechargement, vérification que le layout est bien restauré (positions non vides).
+- **E2E (démo)** — `demo.spec.js` :
+  - **Legal Entities** : chargement, visibilité du graphe et de la toolbar, clic sur un nœud pour expand sans disparition du graphe.
+  - **Legal Entities (custom style)** : même scénario sur la démo au style personnalisé.
+  - **Persistance du layout** : drag d’un nœud, vérification du localStorage, rechargement, vérification que le layout est restauré (positions non vides).
+  - **Toolbar Legal Entities** : présence des boutons « Tout Ouvrir » et « Tout Fermer ».
+  - **Tout Ouvrir** : clic sur « Tout Ouvrir », vérification que le nombre de nœuds visibles augmente.
+  - **Tout Fermer** : après « Tout Ouvrir », clic sur « Tout Fermer », vérification qu’il ne reste qu’un nœud (démarrage).
+  - **Generic Graph** : la toolbar ne contient pas « Tout Ouvrir » ni « Tout Fermer » (uniquement +, −, Fit).
 
 ## Lancer les tests
 

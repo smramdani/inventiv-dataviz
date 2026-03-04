@@ -152,4 +152,75 @@ test.describe("Inventiv DataViz Demo", () => {
     const uniqueTransforms = new Set(transforms.filter(Boolean));
     expect(uniqueTransforms.size, "nodes should have different positions (layout restored)").toBeGreaterThanOrEqual(1);
   });
+
+  test("Legal Entities: toolbar has Tout Ouvrir and Tout Fermer buttons", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("text=Inventiv DataViz")).toBeVisible();
+    const visual = page.locator("#visual");
+    await expect(visual).toBeVisible();
+
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    await expect(toolbar.locator("button", { hasText: "Tout Ouvrir" })).toBeVisible();
+    await expect(toolbar.locator("button", { hasText: "Tout Fermer" })).toBeVisible();
+    await expect(toolbar.locator("button", { hasText: "Fit" })).toBeVisible();
+  });
+
+  test("Legal Entities: Tout Ouvrir shows all nodes", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("text=Inventiv DataViz")).toBeVisible();
+    const visual = page.locator("#visual");
+    await expect(visual).toBeVisible();
+
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    const countBefore = await nodesGroup.locator("g").count();
+    expect(countBefore).toBeGreaterThanOrEqual(1);
+
+    await toolbar.locator("button", { hasText: "Tout Ouvrir" }).click();
+    await page.waitForTimeout(1200);
+
+    const countAfter = await nodesGroup.locator("g").count();
+    expect(countAfter).toBeGreaterThan(countBefore);
+    expect(countAfter).toBeGreaterThanOrEqual(2);
+  });
+
+  test("Legal Entities: Tout Fermer collapses to start node", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("text=Inventiv DataViz")).toBeVisible();
+    const visual = page.locator("#visual");
+    await expect(visual).toBeVisible();
+
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    await toolbar.locator("button", { hasText: "Tout Ouvrir" }).click();
+    await page.waitForTimeout(1200);
+    const countOpen = await nodesGroup.locator("g").count();
+    expect(countOpen).toBeGreaterThanOrEqual(2);
+
+    await toolbar.locator("button", { hasText: "Tout Fermer" }).click();
+    await page.waitForTimeout(1000);
+
+    const countAfter = await nodesGroup.locator("g").count();
+    expect(countAfter).toBe(1);
+  });
+
+  test("Generic Graph: toolbar has no Tout Ouvrir / Tout Fermer", async ({ page }) => {
+    await page.goto("/");
+    await page.locator(".nav-item[data-demo='generic-graph']").click();
+    await page.waitForTimeout(1500);
+
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    await expect(toolbar.locator("button", { hasText: "Fit" })).toBeVisible();
+    await expect(toolbar.locator("button", { hasText: "Tout Ouvrir" })).not.toBeVisible();
+    await expect(toolbar.locator("button", { hasText: "Tout Fermer" })).not.toBeVisible();
+  });
 });

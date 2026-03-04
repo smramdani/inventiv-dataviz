@@ -218,6 +218,21 @@ export function createLegalEntitiesGraph(
     return out;
   }
 
+  /** Nodes that are opened by click OR have all their incident edges already visible (no new nodes would appear). */
+  function getEffectiveOpenedNodeIds(): Set<string> {
+    const effective = new Set(openedNodeIds);
+    for (const node of data.nodes) {
+      if (!visibleNodeIds.has(node.id)) continue;
+      const incidentLinks = data.links.filter((l) => l.source === node.id || l.target === node.id);
+      const allNeighborsVisible = incidentLinks.every((l) => {
+        const other = l.source === node.id ? l.target : l.source;
+        return visibleNodeIds.has(other);
+      });
+      if (incidentLinks.length === 0 || allNeighborsVisible) effective.add(node.id);
+    }
+    return effective;
+  }
+
   function openNode(nodeId: string) {
     openedNodeIds.add(nodeId);
     getNeighborIds(nodeId).forEach((id) => visibleNodeIds.add(id));
@@ -225,12 +240,28 @@ export function createLegalEntitiesGraph(
     render(nodeId);
   }
 
+  function openAll() {
+    data.nodes.forEach((n) => {
+      visibleNodeIds.add(n.id);
+      openedNodeIds.add(n.id);
+    });
+    render();
+  }
+
+  function closeAll() {
+    visibleNodeIds = new Set(defaultStartId ? [defaultStartId] : []);
+    openedNodeIds = new Set();
+    render();
+  }
+
   let engineHandle: ReturnType<typeof renderGraph> | null = (() => {
     const graphData = buildLegalEntitiesGraphData(data, visibleNodeIds);
     if (graphData.nodes.length === 0) return null;
     return renderGraph(container, graphData, config, {
-      openedNodeIds,
+      openedNodeIds: getEffectiveOpenedNodeIds(),
       onNodeClick: openNode,
+      onOpenAll: openAll,
+      onCloseAll: closeAll,
       initialLayoutState: initialLayout,
       onLayoutChange: persistLayout,
     });
@@ -250,8 +281,10 @@ export function createLegalEntitiesGraph(
       engineHandle = null;
     }
     engineHandle = renderGraph(container, graphData, config, {
-      openedNodeIds,
+      openedNodeIds: getEffectiveOpenedNodeIds(),
       onNodeClick: openNode,
+      onOpenAll: openAll,
+      onCloseAll: closeAll,
       expandFromNodeId,
       lastPositions,
       initialZoomTransform: lastZoomTransform,
