@@ -2,7 +2,7 @@
 
 You can customize the look and behaviour of both **Generic Graph** and **Legal Entities Graph** by passing a **`config`** object (partial: only the options you want to override). This page documents every configurable parameter and gives code examples.
 
-**What you can configure:** node **shapes** (circle, rect, roundedRect, triangle), **colors** (nodes, links, arrows, labels, label boxes), **sizes and distances** (node radius, link/arrow thickness, font sizes, label offset, zoom), and **visibility** (arrows, link labels). See the [full config reference](#6-full-config-reference-quick-table) and the [code examples](#7-complete-code-examples) at the end.
+**What you can configure:** node **shapes** (circle, rect, roundedRect, triangle), **colors** (nodes, links, arrows, labels, label boxes), **sizes and distances** (node radius, link/arrow thickness, font sizes, label offset, zoom), **auto layout** (bouton « Organiser » : distance entre nœuds, répulsion, collision), and **visibility** (arrows, link labels). See the [full config reference](#6-full-config-reference-quick-table) and the [code examples](#7-complete-code-examples) at the end.
 
 ---
 
@@ -171,14 +171,49 @@ config: {
 | `linkLabelFontSize` | Font size of the text on link labels. |
 | `linkLabelOffset` | Distance from arrow tip to link label (default `70`). |
 
-### Layout
+### Layout (placement initial et zoom)
 
 | Parameter | Description |
 |-----------|-------------|
-| `placeNewNodesRadius` | Radius of the circle used to place new nodes when expanding (e.g. `100`). |
+| `placeNewNodesRadius` | Radius of the circle used to place new nodes when expanding (e.g. `130`). |
 | `zoomExtent` | `[minScale, maxScale]` for zoom (e.g. `[0.2, 4]`). |
 
-*Note: `linkDistance`, `chargeStrength`, etc. exist in the config but are not used by the current layout engine (position-based only). They are reserved for possible future layout features.*
+---
+
+## 4.5 Auto layout (bouton « Organiser »)
+
+Le bouton **Organiser** dans la toolbar lance un calcul de layout en une fois (simulation de forces) puis fige les positions. Les paramètres suivants contrôlent ce comportement ; ils sont tous **configurables** via `config` :
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `linkDistance` | Distance idéale entre deux nœuds connectés. Plus la valeur est grande, plus les voisins sont éloignés. | `180` |
+| `linkStrength` | Force du lien (0–1). `1` = les nœuds connectés tendent à respecter `linkDistance`. | `1` |
+| `chargeStrength` | Répulsion entre tous les nœuds (valeur négative). Plus la valeur est négative (ex. `-200`), plus les nœuds se repoussent. | `-180` |
+| `chargeDistanceMax` | Distance max à laquelle la répulsion agit. | `320` |
+| `chargeDistanceMin` | Distance min en dessous de laquelle la répulsion est plafonnée. | `32` |
+| `collisionRadiusPadding` | Marge ajoutée au rayon du nœud pour la détection de collision (évite le chevauchement). Plus la valeur est grande, plus les nœuds restent éloignés. | `16` |
+| `centerStrength` | Attraction vers le centre du conteneur (0–1). Plus faible = le graphe peut s’étaler davantage. | `0.1` |
+
+**Exemple – layout plus compact :**
+
+```js
+config: {
+  linkDistance: 100,
+  chargeStrength: -80,
+  collisionRadiusPadding: 8,
+}
+```
+
+**Exemple – layout plus espacé :**
+
+```js
+config: {
+  linkDistance: 220,
+  chargeStrength: -220,
+  chargeDistanceMax: 400,
+  collisionRadiusPadding: 20,
+}
+```
 
 **Example – balanced arrows and link thickness:**
 
@@ -227,6 +262,7 @@ config: {
 | **Labels** | `labelColor`, `nodeLabelOffset`, `labelFontSizeSmall`, `labelFontSizeLarge`, `linkLabelOffset`, `linkLabelFontSize`, `linkLabelFill`, `linkLabelStroke` |
 | **Visibility** | `showArrows`, `showLinkLabel` |
 | **Layout/zoom** | `placeNewNodesRadius`, `zoomExtent`, `fixNodesAfterExpand` |
+| **Organiser (auto layout)** | `linkDistance`, `linkStrength`, `chargeStrength`, `chargeDistanceMax`, `chargeDistanceMin`, `collisionRadiusPadding`, `centerStrength` |
 
 ---
 
@@ -330,8 +366,7 @@ The sections above cover all parameters that currently affect rendering and beha
 - **Shapes:** `nodeShapeDefault`, `nodeShapeByType`, `nodeShapeRoundedRectRadius`.
 - **Colors:** node fill (open/closed, by type), `nodeStroke`, `nodeStrokeWidth`, `linkStroke`, `linkStrokeOpacity`, `arrowFill`, `labelColor`, `linkLabelFill`, `linkLabelStroke`.
 - **Sizes/distances:** `nodeRadiusDefault`, `nodeRadiusByType`, `linkStrokeWidthMin/Max`, `arrowMarkerSizeMin/Max`, `weightToSizeCurve`, `nodeLabelOffset`, `labelFontSizeSmall/Large`, `linkLabelFontSize`, `linkLabelOffset`, `placeNewNodesRadius`, `zoomExtent`.
+- **Organiser (auto layout):** `linkDistance`, `linkStrength`, `chargeStrength`, `chargeDistanceMax`, `chargeDistanceMin`, `collisionRadiusPadding`, `centerStrength` — utilisés par le bouton « Organiser ».
 - **Visibility:** `showArrows`, `showLinkLabel`, `fixNodesAfterExpand`.
-
-The config interface also includes layout-related keys (`linkDistance`, `chargeStrength`, `centerStrength`, etc.); they are reserved for potential future layout features and are not used by the current position-based engine.
 
 If you need a parameter that is not in this list (e.g. another shape such as diamond or hexagon, or a different label position), you can open an issue or contact the project team; the config and engine can be extended.

@@ -211,7 +211,7 @@ test.describe("Inventiv DataViz Demo", () => {
     expect(countAfter).toBe(1);
   });
 
-  test("Generic Graph: toolbar has no Tout Ouvrir / Tout Fermer", async ({ page }) => {
+  test("Generic Graph: toolbar has Organiser but no Tout Ouvrir / Tout Fermer", async ({ page }) => {
     await page.goto("/");
     await page.locator(".nav-item[data-demo='generic-graph']").click();
     await page.waitForTimeout(1500);
@@ -220,7 +220,146 @@ test.describe("Inventiv DataViz Demo", () => {
     const toolbar = visual.locator(".zoom-toolbar");
     await expect(toolbar).toBeVisible({ timeout: 15000 });
     await expect(toolbar.locator("button", { hasText: "Fit" })).toBeVisible();
+    await expect(toolbar.locator("button", { hasText: "Organiser" })).toBeVisible();
     await expect(toolbar.locator("button", { hasText: "Tout Ouvrir" })).not.toBeVisible();
     await expect(toolbar.locator("button", { hasText: "Tout Fermer" })).not.toBeVisible();
+  });
+
+  test("Toolbar has Organiser button (Legal Entities)", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual).toBeVisible();
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    await expect(toolbar.locator("button", { hasText: "Organiser" })).toBeVisible();
+  });
+
+  test("Organiser: runs without error and graph stays visible", async ({ page }) => {
+    const consoleErrors = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
+
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    await nodesGroup.locator("g").first().click();
+    await page.waitForTimeout(800);
+    const countBefore = await nodesGroup.locator("g").count();
+    expect(countBefore).toBeGreaterThanOrEqual(1);
+
+    await toolbar.locator("button", { hasText: "Organiser" }).click();
+    await page.waitForTimeout(2500);
+
+    await expect(toolbar).toBeVisible();
+    await expect(nodesGroup).toBeVisible();
+    const countAfter = await nodesGroup.locator("g").count();
+    expect(countAfter).toBe(countBefore);
+
+    const errors = consoleErrors.filter(
+      (e) => !e.includes("favicon") && !e.includes("404") && !e.includes("Failed to load resource")
+    );
+    expect(errors, "no console errors during Organiser").toEqual([]);
+  });
+
+  test("Organiser: layout changes (node positions differ after run)", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    await nodesGroup.locator("g").first().click();
+    await page.waitForTimeout(1000);
+    const count = await nodesGroup.locator("g").count();
+    expect(count).toBeGreaterThanOrEqual(1);
+
+    await toolbar.locator("button", { hasText: "Organiser" }).click();
+    await page.waitForTimeout(2500);
+
+    const transforms = await nodesGroup.locator("g").evaluateAll((els) =>
+      els.map((g) => g.getAttribute("transform") || "")
+    );
+    const uniqueTransforms = new Set(transforms.filter(Boolean));
+    expect(uniqueTransforms.size, "Organiser should produce distinct node positions").toBeGreaterThanOrEqual(
+      Math.min(2, count)
+    );
+  });
+
+  test("Fit button: click does not break graph", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+
+    await toolbar.locator("button", { hasText: "Fit" }).click();
+    await page.waitForTimeout(500);
+
+    await expect(toolbar).toBeVisible();
+    await expect(visual.locator("g.nodes")).toBeVisible();
+    expect(await visual.locator("g.nodes g").count()).toBeGreaterThanOrEqual(1);
+  });
+
+  test("After expand: links are visible when multiple nodes", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    await nodesGroup.locator("g").first().click();
+    await page.waitForTimeout(1000);
+
+    const nodeCount = await nodesGroup.locator("g").count();
+    const linksGroup = visual.locator("g.links");
+    await expect(linksGroup).toBeVisible();
+    if (nodeCount >= 2) {
+      const lineCount = await linksGroup.locator("line").count();
+      expect(lineCount, "at least one link when 2+ nodes").toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  test("Organiser: layout is persisted and restored after reload", async ({ page }) => {
+    const LAYOUT_KEY = "inventiv-dataviz-layout-demo-legal-entities";
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    const toolbar = visual.locator(".zoom-toolbar");
+    await expect(toolbar).toBeVisible({ timeout: 15000 });
+    const nodesGroup = visual.locator("g.nodes");
+    await expect(nodesGroup).toBeVisible({ timeout: 5000 });
+
+    await nodesGroup.locator("g").first().click();
+    await page.waitForTimeout(1000);
+    await toolbar.locator("button", { hasText: "Organiser" }).click();
+    await page.waitForTimeout(2500);
+
+    const saved = await page.evaluate((key) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return { ok: false, posCount: 0 };
+        const parsed = JSON.parse(raw);
+        const posCount = Object.keys(parsed?.positions || {}).length;
+        return { ok: true, posCount };
+      } catch {
+        return { ok: false, posCount: 0 };
+      }
+    }, LAYOUT_KEY);
+    expect(saved.ok).toBe(true);
+    expect(saved.posCount).toBeGreaterThan(0);
+
+    await page.reload();
+    await expect(page.locator("text=Inventiv DataViz")).toBeVisible({ timeout: 10000 });
+    const visual2 = page.locator("#visual");
+    await expect(visual2.locator(".zoom-toolbar")).toBeVisible({ timeout: 15000 });
+    await expect(visual2.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+    const nodeCount = await visual2.locator("g.nodes g").count();
+    expect(nodeCount).toBeGreaterThanOrEqual(1);
   });
 });

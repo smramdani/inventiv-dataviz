@@ -233,7 +233,8 @@ Both widgets share the same engine (zoom, pan, drag, layout). Data is plain obje
 | **dist/** | Built files: `inventiv-dataviz.js`, `.esm.js`, and `inventivLegalEntitiesGraph.*.pbiviz` |
 | **examples/** | Minimal “hello world” HTML ([examples/README.md](examples/README.md)) |
 | **demo/** | Full demo app – run with `npm run demo` ([demo/README.md](demo/README.md)) |
-| **docs/** | [VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md), [DATA_MAPPING.md](docs/DATA_MAPPING.md) |
+| **tests/** | E2E tests (Playwright) – run with `npm run test:e2e` ([tests/README.md](tests/README.md)) |
+| **docs/** | [GETTING_STARTED.md](docs/GETTING_STARTED.md), [CUSTOMIZATION.md](docs/CUSTOMIZATION.md), [DATA_MAPPING.md](docs/DATA_MAPPING.md), [VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md) |
 | **src/** | Graph engine, visuals, web API |
 
 ## Build commands
@@ -244,17 +245,19 @@ npm run build:web    # Web bundle (dist/inventiv-dataviz.js, .esm.js)
 npm run build:demo   # Demo app bundle (demo/dist/visual.js)
 npm run demo         # Serve demo at http://localhost:3000
 npm run package      # Power BI .pbiviz (dist/inventivLegalEntitiesGraph.*.pbiviz)
-npm run test:e2e     # Automated E2E: build demo, start server, run Playwright tests (graph load + click, no disappear)
+npm run test:e2e     # E2E: build demo, start server, run Playwright (load, expand, Organiser, Fit, layout persistence)
+npm run lint        # ESLint (JS files)
 ```
 
-**Tests :** les tests automatisés (E2E Playwright) sont dans **[tests/](tests/)**. Un seul dossier `tests/` ; la config est `playwright.config.js` à la racine. Les dossiers `test-results/` et `playwright-report/` sont générés à l’exécution (ignorés par Git).
+**Tests :** les tests automatisés (E2E Playwright, 13 scénarios) sont dans **[tests/](tests/)**. Config : `playwright.config.js` à la racine. Sorties : `test-results/`, `playwright-report/` (ignorés par Git).
 
 ---
 
 ## Docs
 
 - **Getting started:** [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) (step-by-step) and [examples/README.md](examples/README.md) (minimal examples).
-- **Customization (shapes, colors, sizes, examples):** [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md).
+- **Customization (shapes, colors, sizes, Organiser layout):** [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md).
 - **Data shapes and mapping:** [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md).
 - **Vision, design, roadmap:** [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
 - **Layout persistence:** [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore positions and zoom on drag/zoom end; `layoutKey` per graph; partial restore when data changes.
+- **Automated tests:** [tests/README.md](tests/README.md) — E2E Playwright, how to run and what is covered.

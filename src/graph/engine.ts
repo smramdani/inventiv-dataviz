@@ -54,6 +54,8 @@ export interface GraphEngineRenderOptions {
 export interface GraphEngineHandle {
   destroy(): void;
   fitGraph(): void;
+  /** One-shot layout: run force simulation to stability then update positions (button "Organiser"). */
+  runOrganiseLayout(): void;
   getLastPositions(): Map<string, { x: number; y: number; fx?: number | null; fy?: number | null }>;
   getZoomTransform(): d3.ZoomTransform;
   /** Serializable layout state (positions + zoom) for persistence. */
@@ -178,6 +180,7 @@ export function renderGraph(
     return {
       destroy() {},
       fitGraph() {},
+      runOrganiseLayout() {},
       getLastPositions: () => new Map(),
       getZoomTransform: () => d3.zoomIdentity,
       getLayoutState: (): LayoutState => ({ positions: {}, zoom: { k: 1, x: 0, y: 0 } }),
@@ -561,6 +564,62 @@ export function renderGraph(
   }
   updateVisual();
 
+  const ORGANISE_TICKS = 300;
+  const ORGANISE_ALPHA_MIN = 0.005;
+
+  function runOrganiseLayout() {
+    if (engineNodes.length === 0) return;
+    const d3Links = engineLinks.map((l) => ({ source: l.fromNode, target: l.toNode }));
+    for (const d of engineNodes) {
+      d.fx = null;
+      d.fy = null;
+    }
+    const sim = d3
+      .forceSimulation(engineNodes)
+      .force(
+        "link",
+        d3
+          .forceLink(d3Links)
+          .id((d: EngineNode) => d.id)
+          .distance(config.linkDistance)
+          .strength(config.linkStrength)
+      )
+      .force(
+        "charge",
+        d3
+          .forceManyBody()
+          .strength(config.chargeStrength)
+          .distanceMax(config.chargeDistanceMax)
+          .distanceMin(config.chargeDistanceMin)
+      )
+      .force(
+        "collision",
+        d3.forceCollide().radius((d: EngineNode) => getNodeRadius(d, config) + config.collisionRadiusPadding)
+      )
+      .force("center", d3.forceCenter(width / 2, height / 2).strength(config.centerStrength))
+      .alpha(0.4)
+      .restart();
+
+    for (let i = 0; i < ORGANISE_TICKS; i++) {
+      sim.tick();
+      if (sim.alpha() < ORGANISE_ALPHA_MIN) break;
+    }
+    sim.stop();
+
+    for (const d of engineNodes) {
+      d.fx = d.x ?? 0;
+      d.fy = d.y ?? 0;
+      currentLastPositions.set(String(d.id), {
+        x: d.x ?? 0,
+        y: d.y ?? 0,
+        fx: d.fx,
+        fy: d.fy,
+      });
+    }
+    updateVisual();
+    flushLayoutChange();
+  }
+
   let toolbarDiv: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
 
   function addToolbar() {
@@ -592,6 +651,12 @@ export function renderGraph(
       .attr("title", "Fit graph")
       .text("Fit")
       .on("click", fitGraph);
+    toolbarDiv
+      .append("button")
+      .attr("type", "button")
+      .attr("title", "Organiser les nœuds")
+      .text("Organiser")
+      .on("click", runOrganiseLayout);
     if (onOpenAll) {
       toolbarDiv
         .append("button")
@@ -646,6 +711,7 @@ export function renderGraph(
       toolbarDiv?.remove();
     },
     fitGraph,
+    runOrganiseLayout,
     getLastPositions: () => new Map(currentLastPositions),
     getZoomTransform: () => zoomTransform,
     getLayoutState: (): LayoutState => ({

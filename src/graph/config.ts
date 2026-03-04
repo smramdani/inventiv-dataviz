@@ -14,21 +14,21 @@ export interface LinkStyleContext {
 
 /** Node/link styling and layout parameters. */
 export interface GraphConfig {
-  /** Link force distance (default 65). */
+  /** Ideal distance between connected nodes (button "Organiser"). Default 180. */
   linkDistance: number;
-  /** Link force strength (default 1). */
+  /** Link force strength 0–1 (Organiser). Default 1. */
   linkStrength: number;
-  /** Many-body charge strength, negative = repel (default -45). */
+  /** Many-body charge strength, negative = repel (Organiser). Default -180. */
   chargeStrength: number;
-  /** Max distance for charge force (default 180). */
+  /** Max distance for charge force (Organiser). Default 320. */
   chargeDistanceMax: number;
-  /** Min distance for charge force (default 24). */
+  /** Min distance for charge force (Organiser). Default 32. */
   chargeDistanceMin: number;
-  /** Extra padding added to node radius for collision (default 4). */
+  /** Extra padding added to node radius for collision, avoids overlap (Organiser). Default 16. */
   collisionRadiusPadding: number;
-  /** Center force strength (default 0.15). */
+  /** Center force strength 0–1 (Organiser). Default 0.1. */
   centerStrength: number;
-  /** Radius for placing new nodes around parent when expanding (default 100). */
+  /** Radius for placing new nodes when expanding. Default 160. */
   placeNewNodesRadius: number;
   /** Node radius by type; fallback to nodeRadiusDefault. */
   nodeRadiusByType: Record<string, number>;
@@ -115,14 +115,14 @@ function linkStrokeWidthFromWeight(weight: number): number {
 
 /** Default config matching current Legal Entities visual. */
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
-  linkDistance: 65,
+  linkDistance: 180,
   linkStrength: 1,
-  chargeStrength: -45,
-  chargeDistanceMax: 180,
-  chargeDistanceMin: 24,
-  collisionRadiusPadding: 4,
-  centerStrength: 0.15,
-  placeNewNodesRadius: 100,
+  chargeStrength: -180,
+  chargeDistanceMax: 320,
+  chargeDistanceMin: 32,
+  collisionRadiusPadding: 16,
+  centerStrength: 0.1,
+  placeNewNodesRadius: 160,
   nodeRadiusByType: {
     Shareholder: 12,
     Entity: 22,

@@ -11,7 +11,10 @@ Tous les **tests automatisés** du projet sont ici.
   - **Toolbar Legal Entities** : présence des boutons « Tout Ouvrir » et « Tout Fermer ».
   - **Tout Ouvrir** : clic sur « Tout Ouvrir », vérification que le nombre de nœuds visibles augmente.
   - **Tout Fermer** : après « Tout Ouvrir », clic sur « Tout Fermer », vérification qu’il ne reste qu’un nœud (démarrage).
-  - **Generic Graph** : la toolbar ne contient pas « Tout Ouvrir » ni « Tout Fermer » (uniquement +, −, Fit).
+  - **Generic Graph** : la toolbar contient « Organiser » mais pas « Tout Ouvrir » ni « Tout Fermer ».
+  - **Organiser** : présence du bouton « Organiser » (Legal Entities), clic sans erreur ni erreur console (graphe et nœuds restent visibles), layout après Organiser avec positions distinctes, persistance et restauration après rechargement.
+  - **Fit** : clic sur « Fit » sans casser le graphe.
+  - **Liens** : après expansion, au moins un lien (arête) visible quand il y a au moins 2 nœuds.
 
 ## Lancer les tests
 
