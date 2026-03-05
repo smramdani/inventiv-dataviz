@@ -12,6 +12,16 @@ _Nothing yet._
 
 ---
 
+## [0.0.13] - 2026-03-08
+
+### Added
+
+- **Release automation**: GitHub Action on tag push `v*` creates a GitHub Release with notes extracted from CHANGELOG.
+- **docs/RELEASING.md**: procedure (checklist, optional manual steps) and link in docs index.
+- **scripts/extract-changelog-for-release.sh**: extracts a version section from CHANGELOG for release notes.
+
+---
+
 ## [0.0.12] - 2026-03-07
 
 ### Added
@@ -184,7 +194,8 @@ _Nothing yet._
 
 ---
 
-[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.12...HEAD
+[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.13...HEAD
+[0.0.13]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.9...v0.0.10

@@ -15,6 +15,7 @@ Central index for project documentation. Start with [GETTING_STARTED.md](GETTING
 | **[VISION_AND_ROADMAP.md](VISION_AND_ROADMAP.md)** | Vision, architecture (generic core + two widgets, Web + Power BI), and roadmap phases. |
 | **[OPEN_SOURCE_EXPERT_RECOMMENDATIONS.md](OPEN_SOURCE_EXPERT_RECOMMENDATIONS.md)** | Expert analysis and recommendations for making the project a trusted, professional open-source project (contributing, security, releases, discoverability). |
 | **[OPEN_SOURCE_IMPLEMENTATION_TODO.md](OPEN_SOURCE_IMPLEMENTATION_TODO.md)** | Structured TODO list for implementing the open-source recommendations (phases 1–8). |
+| **[RELEASING.md](RELEASING.md)** | How to release a new version (CHANGELOG, tag, GitHub Release); automation on tag push. |
 
 **At repository root:** [../CHANGELOG.md](../CHANGELOG.md) — version history (Keep a Changelog format).
 

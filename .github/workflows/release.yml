@@ -1,0 +1,45 @@
+# When a version tag (v*) is pushed, create a GitHub Release with notes from CHANGELOG.
+# This way "Latest release" on the repo always matches the latest tag.
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Extract changelog section
+        run: |
+          chmod +x scripts/extract-changelog-for-release.sh
+          ./scripts/extract-changelog-for-release.sh "${{ steps.version.outputs.version }}" CHANGELOG.md > release-notes.md || echo "See CHANGELOG.md for details." > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "See CHANGELOG.md for details." > release-notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          body_path: release-notes.md
+          tag_name: ${{ github.ref_name }}
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
