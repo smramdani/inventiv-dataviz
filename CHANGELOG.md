@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+_Nothing yet._
+
+---
+
+## [0.0.11] - 2026-03-06
+
 ### Added
 
 - **Info card** (node and link selection): pop-up showing node/link details when clicking a node or an edge.
@@ -162,7 +168,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.10...HEAD
+[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.11...HEAD
+[0.0.11]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.9...v0.0.10
 [0.0.9]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.8...v0.0.9
 [0.0.8]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.7...v0.0.8
