@@ -1,8 +1,8 @@
-# Plan: persist node positions and layout
+# Layout persistence – design and behaviour
 
 **Goal:** Avoid re-opening, moving and reorganizing nodes after refresh, reload or reopen. Restore positions, zoom/pan and (for Legal Entities) which nodes were expanded.
 
-**Status:** Implemented (Phases A–D). Engine exposes `getLayoutState()` and accepts `initialLayoutState` / `onLayoutChange`; web API supports `layoutKey` (localStorage) and callbacks; Legal Entities persist visible/opened; Power BI persists via visual property `explore.layoutState`.
+**Status:** Implemented. This document describes the design and current behaviour. Engine exposes `getLayoutState()` and accepts `initialLayoutState` / `onLayoutChange`; web API supports `layoutKey` (localStorage) and callbacks; Legal Entities persist visible/opened; Power BI persists via visual property `explore.layoutState`.
 
 ---
 

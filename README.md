@@ -93,49 +93,10 @@ You get **two widgets** (for now): a **Generic Graph** for any network (anything
 
 ---
 
-## Hello World – two widgets, same idea
+## Hello World – two widgets
 
-### 1. Generic Graph (any nodes and links)
-
-Minimal data: an array of **rows** with `source`, `target`, and optional `weight`.
-
-```html
-<div id="graph" style="width:100%; height:400px;"></div>
-<script src="dist/inventiv-dataviz.js"></script>
-<script>
-  InventivDataviz.createGenericGraph(document.getElementById("graph"), {
-    rows: [
-      { source: "A", target: "B", weight: 10 },
-      { source: "B", target: "C", weight: 20 },
-      { source: "A", target: "C", weight: 5 }
-    ]
-  });
-</script>
-```
-
-### 2. Legal Entities Graph (entities + shareholders, expand on click)
-
-Data: **nodes** (id, label, type: `"Entity"` or `"Shareholder"`) and **links** (source, target, shares).
-
-```html
-<div id="graph" style="width:100%; height:400px;"></div>
-<script src="dist/inventiv-dataviz.js"></script>
-<script>
-  InventivDataviz.createLegalEntitiesGraph(document.getElementById("graph"), {
-    nodes: [
-      { id: "1", label: "Parent Co", type: "Entity" },
-      { id: "2", label: "Subsidiary A", type: "Entity" },
-      { id: "3", label: "Alice", type: "Shareholder" }
-    ],
-    links: [
-      { source: "3", target: "1", shares: 500 },
-      { source: "1", target: "2", shares: 1000 }
-    ]
-  });
-</script>
-```
-
-Click a node to expand and see connections. Zoom and pan with the toolbar or mouse.
+- **Generic Graph:** data = `{ rows: [{ source, target, weight }] }`. See [examples/README.md](examples/README.md) and [examples/hello-world.html](examples/hello-world.html).
+- **Legal Entities Graph:** data = `{ nodes: [{ id, label, type }], links: [{ source, target, shares }] }`. Click a node to expand. See [examples/hello-world-legal.html](examples/hello-world-legal.html).
 
 ---
 
@@ -219,10 +180,10 @@ Open **http://localhost:3000** for the full demo (Legal Entities, Generic, Speci
 
 | Widget | Use case | Web API | Power BI |
 |--------|----------|---------|----------|
-| **Generic Graph** | Any network (nodes + links). Customizable colors, shapes, layout. | `createGenericGraph(container, data, options?)` | (in repo) |
+| **Generic Graph** | Any network (nodes + links). Customizable colors, shapes, layout. | `createGenericGraph(container, data, options?)` | Web only |
 | **Legal Entities Graph** | Entities, shareholders, ownership %. Expand on click, share % on edges. | `createLegalEntitiesGraph(container, data, options?)` | ✅ `.pbiviz` |
 
-Both widgets share the same engine (zoom, pan, drag, layout). Data is plain objects (rows or nodes+links); no Power BI dependency in the web build.
+Both widgets share the same engine (zoom, pan, drag, layout). Data is plain objects (rows or nodes+links). Power BI package currently includes the Legal Entities visual only.
 
 ---
 
@@ -234,7 +195,7 @@ Both widgets share the same engine (zoom, pan, drag, layout). Data is plain obje
 | **examples/** | Minimal “hello world” HTML ([examples/README.md](examples/README.md)) |
 | **demo/** | Full demo app – run with `npm run demo` ([demo/README.md](demo/README.md)) |
 | **tests/** | E2E tests (Playwright) – run with `npm run test:e2e` ([tests/README.md](tests/README.md)) |
-| **docs/** | [GETTING_STARTED.md](docs/GETTING_STARTED.md), [CUSTOMIZATION.md](docs/CUSTOMIZATION.md), [DATA_MAPPING.md](docs/DATA_MAPPING.md), [VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md) |
+| **docs/** | [Documentation index](docs/README.md) — [GETTING_STARTED](docs/GETTING_STARTED.md), [CUSTOMIZATION](docs/CUSTOMIZATION.md), [DATA_MAPPING](docs/DATA_MAPPING.md), [LAYOUT_PERSISTENCE_PLAN](docs/LAYOUT_PERSISTENCE_PLAN.md), [VISION_AND_ROADMAP](docs/VISION_AND_ROADMAP.md) |
 | **src/** | Graph engine, visuals, web API |
 
 ## Build commands
@@ -249,15 +210,20 @@ npm run test:e2e     # E2E: build demo, start server, run Playwright (load, expa
 npm run lint        # ESLint (JS files)
 ```
 
-**Tests :** les tests automatisés (E2E Playwright, 13 scénarios) sont dans **[tests/](tests/)**. Config : `playwright.config.js` à la racine. Sorties : `test-results/`, `playwright-report/` (ignorés par Git).
+**Tests:** Automated E2E tests (Playwright, 18 scenarios) are in **[tests/](tests/)**. Config: `playwright.config.js` at project root. Outputs: `test-results/`, `playwright-report/` (git-ignored).
 
 ---
 
 ## Docs
 
-- **Getting started:** [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) (step-by-step) and [examples/README.md](examples/README.md) (minimal examples).
-- **Customization (shapes, colors, sizes, Organiser layout):** [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md).
-- **Data shapes and mapping:** [docs/DATA_MAPPING.md](docs/DATA_MAPPING.md).
-- **Vision, design, roadmap:** [docs/VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md).
-- **Layout persistence:** [docs/LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore positions and zoom on drag/zoom end; `layoutKey` per graph; partial restore when data changes.
-- **Automated tests:** [tests/README.md](tests/README.md) — E2E Playwright, how to run and what is covered.
+See **[docs/README.md](docs/README.md)** for the full documentation index.
+
+| Topic | Document |
+|-------|----------|
+| **Getting started** | [GETTING_STARTED.md](docs/GETTING_STARTED.md) — install, build, first graph |
+| **Minimal examples** | [examples/README.md](examples/README.md) — hello-world HTML |
+| **Customization** | [CUSTOMIZATION.md](docs/CUSTOMIZATION.md) — shapes, colors, sizes, info card, Organiser |
+| **Data mapping** | [DATA_MAPPING.md](docs/DATA_MAPPING.md) — row-based vs nodes+links, fields, attributes |
+| **Layout persistence** | [LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore positions and zoom |
+| **Vision & roadmap** | [VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md) — design and roadmap |
+| **Automated tests** | [tests/README.md](tests/README.md) — E2E Playwright (18 scenarios) |

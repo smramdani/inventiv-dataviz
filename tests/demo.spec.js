@@ -362,4 +362,89 @@ test.describe("Inventiv DataViz Demo", () => {
     const nodeCount = await visual2.locator("g.nodes g").count();
     expect(nodeCount).toBeGreaterThanOrEqual(1);
   });
+
+  test("Info card: visible when clicking a node (no re-render on second click)", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual.locator(".zoom-toolbar")).toBeVisible({ timeout: 15000 });
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(1000);
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(400);
+
+    const card = visual.locator(".inventiv-info-card");
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Type");
+  });
+
+  test("Info card: shows custom attributes for Entity (Company Name, Legal Form, City, Country)", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(1000);
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(400);
+
+    const card = visual.locator(".inventiv-info-card");
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Company Name");
+    await expect(card).toContainText("Legal Form");
+    await expect(card).toContainText("City");
+    await expect(card).toContainText("Country");
+  });
+
+  test("Info card: shows custom attributes for Shareholder (First Name, Last Name, Age)", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(1000);
+    const shareholderNode = visual.locator("g.nodes g").filter({ hasText: "Larry" }).first();
+    await expect(shareholderNode).toBeVisible({ timeout: 3000 });
+    await shareholderNode.click();
+    await page.waitForTimeout(1000);
+    await shareholderNode.click();
+    await page.waitForTimeout(400);
+
+    const card = visual.locator(".inventiv-info-card");
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("First Name");
+    await expect(card).toContainText("Last Name");
+    await expect(card).toContainText("Age");
+  });
+
+  test("Info card: visible when clicking a link", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(1000);
+
+    const firstLine = visual.locator("g.links line").first();
+    await firstLine.click({ force: true });
+    await page.waitForTimeout(400);
+
+    const card = visual.locator(".inventiv-info-card");
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Weight");
+  });
+
+  test("Info card: close button hides the card", async ({ page }) => {
+    await page.goto("/");
+    const visual = page.locator("#visual");
+    await expect(visual.locator("g.nodes")).toBeVisible({ timeout: 5000 });
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(1000);
+    await visual.locator("g.nodes g").first().click();
+    await page.waitForTimeout(400);
+
+    const card = visual.locator(".inventiv-info-card");
+    await expect(card).toBeVisible();
+    await card.locator("button.inventiv-info-card-close").click();
+    await page.waitForTimeout(200);
+    await expect(card).toBeHidden();
+  });
 });

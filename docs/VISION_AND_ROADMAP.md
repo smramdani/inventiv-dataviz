@@ -164,17 +164,17 @@ See **[DATA_MAPPING.md](DATA_MAPPING.md)** for the full API and examples.
 
 - [x] **Web API** in `src/web/index.ts`: `createGenericGraph(container, data, options)`, `createLegalEntitiesGraph(container, data, options)` returning `{ destroy(), updateData(), updateOptions() }`.
 - [x] **Web bundle**: `npm run build:web` produces `dist/inventiv-dataviz.js` (IIFE) and `dist/inventiv-dataviz.esm.js` (ESM); no Power BI in bundle.
-- [ ] Document web usage (script tag + ESM import) and optional demo page.
+- [x] Document web usage (script tag + ESM import) in README, GETTING_STARTED, and demo/examples.
 
 **Outcome**: Same visuals usable as Web Widgets and Power BI plugins.
 
 ### Phase 4: Polish and documentation
 
 - [ ] Expand Format pane for both visuals (all important config params exposed).
-- [x] **Fake data removed from library**: Legal Entities visual reads only from DataView (`parseDataViewToLegacyGraph`). Fake data lives in `test/fakeGraphData.ts`; test entry builds a mock DataView for demos. Production package contains no fake data.
+- [x] **Fake data removed from library**: Legal Entities visual reads only from DataView. Demo/fake data lives in `demo/fakeGraphData.ts`; demo entry builds a mock DataView. Production package contains no fake data.
 - [ ] Bind Legal Entities visual to **real** Power BI data (From, To, Shares) in reports; empty state when no data.
-- [ ] Tests (unit for config/mapping; optional e2e for render).
-- [ ] README and docs: vision, architecture, config reference, web + Power BI usage.
+- [x] E2E tests (Playwright, 18 scenarios: load, expand, Organiser, Fit, layout persistence, info card).
+- [x] README and docs: vision, architecture, config reference, web + Power BI usage (see docs/README.md).
 
 ---
 

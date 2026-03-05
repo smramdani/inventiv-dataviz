@@ -1,6 +1,6 @@
 # Getting started with Inventiv DataViz
 
-Integrate a graph into your app in three steps: **install**, **build** (or copy the bundle), **call the API**.
+This guide gets you from zero to a working graph in three steps: **install**, **build** (or copy the bundle), **call the API**. For the full documentation index, see [README.md](README.md) in this folder.
 
 ---
 

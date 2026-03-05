@@ -2,41 +2,76 @@
  * Demo graph data – Legal Entities & Shareholders, Species, Sentence/POS.
  * Used only by the demo app; not part of the library or production package.
  * Legal entity names are anonymized or illustrative (fake data for known brands).
+ * Legal Entities nodes include custom attributes for info cards: Personnes Physiques (First Name, Last Name, Age, City, Country), Personnes Morales (Company Name, Legal Form, Total Shares, City, Country).
  */
 
 import type { LegalEntitiesGraph } from "../src/graph";
 
-function node(id: string, label: string, type: "Entity" | "Shareholder") {
-  return { id, label, type };
+function entityNode(
+  id: string,
+  label: string,
+  attrs: { companyName: string; legalForm: string; totalShares: number; city: string; country: string }
+) {
+  return {
+    id,
+    label,
+    type: "Entity" as const,
+    attributes: {
+      "Company Name": attrs.companyName,
+      "Legal Form": attrs.legalForm,
+      "Total Shares": attrs.totalShares,
+      City: attrs.city,
+      Country: attrs.country,
+    },
+  };
+}
+
+function shareholderNode(
+  id: string,
+  label: string,
+  attrs: { firstName: string; lastName: string; age: number; city: string; country: string }
+) {
+  return {
+    id,
+    label,
+    type: "Shareholder" as const,
+    attributes: {
+      "First Name": attrs.firstName,
+      "Last Name": attrs.lastName,
+      Age: attrs.age,
+      City: attrs.city,
+      Country: attrs.country,
+    },
+  };
 }
 
 function link(source: string, target: string, shares: number) {
   return { source, target, shares };
 }
 
-/** Anonymized corporate structure (privacy-safe). */
+/** Anonymized corporate structure (privacy-safe) with custom attributes for info cards. */
 export function getFakeGraph(): LegalEntitiesGraph {
   const nodes: LegalEntitiesGraph["nodes"] = [
-    node("n1", "Global Holdings (France)", "Entity"),
-    node("n2", "Beta Holdings (UK)", "Entity"),
-    node("n3", "Gamma Inc (USA)", "Entity"),
-    node("n4", "Delta Ltd (Germany)", "Entity"),
-    node("n5", "Epsilon SA (Luxembourg)", "Entity"),
-    node("n6", "Zeta Group (Netherlands)", "Entity"),
-    node("n7", "Sigma Ventures (Ireland)", "Entity"),
-    node("n8", "Omega Partners (Switzerland)", "Entity"),
-    node("n9", "John Doe", "Shareholder"),
-    node("n10", "Jane Smith", "Shareholder"),
-    node("n11", "Pierre Martin", "Shareholder"),
-    node("n12", "Anna Weber", "Shareholder"),
-    node("n13", "Thomas Brown", "Shareholder"),
-    node("n14", "Maria Garcia", "Shareholder"),
-    node("n15", "James Wilson", "Shareholder"),
-    node("n16", "Alex Kerr", "Shareholder"),
-    node("n17", "Sophie Dubois", "Shareholder"),
-    node("n18", "Michael Chen", "Shareholder"),
-    node("n19", "Emma Fischer", "Shareholder"),
-    node("n20", "David O'Brien", "Shareholder"),
+    entityNode("n1", "Global Holdings (France)", { companyName: "Global Holdings", legalForm: "SAS", totalShares: 10000, city: "Paris", country: "France" }),
+    entityNode("n2", "Beta Holdings (UK)", { companyName: "Beta Holdings", legalForm: "Ltd", totalShares: 8000, city: "London", country: "United Kingdom" }),
+    entityNode("n3", "Gamma Inc (USA)", { companyName: "Gamma Inc", legalForm: "Inc", totalShares: 15000, city: "New York", country: "USA" }),
+    entityNode("n4", "Delta Ltd (Germany)", { companyName: "Delta GmbH", legalForm: "GmbH", totalShares: 12000, city: "Berlin", country: "Germany" }),
+    entityNode("n5", "Epsilon SA (Luxembourg)", { companyName: "Epsilon SA", legalForm: "SA", totalShares: 5000, city: "Luxembourg", country: "Luxembourg" }),
+    entityNode("n6", "Zeta Group (Netherlands)", { companyName: "Zeta Group", legalForm: "BV", totalShares: 9000, city: "Amsterdam", country: "Netherlands" }),
+    entityNode("n7", "Sigma Ventures (Ireland)", { companyName: "Sigma Ventures", legalForm: "Ltd", totalShares: 6000, city: "Dublin", country: "Ireland" }),
+    entityNode("n8", "Omega Partners (Switzerland)", { companyName: "Omega Partners", legalForm: "AG", totalShares: 11000, city: "Zurich", country: "Switzerland" }),
+    shareholderNode("n9", "John Doe", { firstName: "John", lastName: "Doe", age: 45, city: "Paris", country: "France" }),
+    shareholderNode("n10", "Jane Smith", { firstName: "Jane", lastName: "Smith", age: 38, city: "London", country: "United Kingdom" }),
+    shareholderNode("n11", "Pierre Martin", { firstName: "Pierre", lastName: "Martin", age: 52, city: "Lyon", country: "France" }),
+    shareholderNode("n12", "Anna Weber", { firstName: "Anna", lastName: "Weber", age: 41, city: "Munich", country: "Germany" }),
+    shareholderNode("n13", "Thomas Brown", { firstName: "Thomas", lastName: "Brown", age: 34, city: "Boston", country: "USA" }),
+    shareholderNode("n14", "Maria Garcia", { firstName: "Maria", lastName: "Garcia", age: 49, city: "Madrid", country: "Spain" }),
+    shareholderNode("n15", "James Wilson", { firstName: "James", lastName: "Wilson", age: 56, city: "Edinburgh", country: "United Kingdom" }),
+    shareholderNode("n16", "Alex Kerr", { firstName: "Alex", lastName: "Kerr", age: 29, city: "Dublin", country: "Ireland" }),
+    shareholderNode("n17", "Sophie Dubois", { firstName: "Sophie", lastName: "Dubois", age: 43, city: "Brussels", country: "Belgium" }),
+    shareholderNode("n18", "Michael Chen", { firstName: "Michael", lastName: "Chen", age: 37, city: "Singapore", country: "Singapore" }),
+    shareholderNode("n19", "Emma Fischer", { firstName: "Emma", lastName: "Fischer", age: 31, city: "Vienna", country: "Austria" }),
+    shareholderNode("n20", "David O'Brien", { firstName: "David", lastName: "O'Brien", age: 47, city: "Zurich", country: "Switzerland" }),
   ];
 
   const links: LegalEntitiesGraph["links"] = [
@@ -66,34 +101,34 @@ export function getFakeGraph(): LegalEntitiesGraph {
   return { nodes, links };
 }
 
-/** Fake tech / conglomerate structure (~30 nodes): Alphabet, Meta, Tesla, SpaceX, etc. */
+/** Fake tech / conglomerate structure (~30 nodes): Alphabet, Meta, Tesla, SpaceX, etc. With custom attributes for info cards. */
 export function getFakeGraphTechCompanies(): LegalEntitiesGraph {
   const nodes: LegalEntitiesGraph["nodes"] = [
-    node("t1", "Alphabet Inc", "Entity"),
-    node("t2", "Google LLC", "Entity"),
-    node("t3", "YouTube", "Entity"),
-    node("t4", "Waymo", "Entity"),
-    node("t5", "DeepMind", "Entity"),
-    node("t6", "Meta Platforms", "Entity"),
-    node("t7", "Facebook", "Entity"),
-    node("t8", "Instagram", "Entity"),
-    node("t9", "WhatsApp", "Entity"),
-    node("t10", "Tesla Inc", "Entity"),
-    node("t11", "SpaceX", "Entity"),
-    node("t12", "Starlink", "Entity"),
-    node("t13", "The Boring Company", "Entity"),
-    node("t14", "Neuralink", "Entity"),
-    node("t15", "X Corp", "Entity"),
-    node("t16", "Larry Page", "Shareholder"),
-    node("t17", "Sergey Brin", "Shareholder"),
-    node("t18", "Sundar Pichai", "Shareholder"),
-    node("t19", "Mark Zuckerberg", "Shareholder"),
-    node("t20", "Elon Musk", "Shareholder"),
-    node("t21", "Institutional Fund A", "Shareholder"),
-    node("t22", "Institutional Fund B", "Shareholder"),
-    node("t23", "Verily", "Entity"),
-    node("t24", "Reality Labs", "Entity"),
-    node("t25", "SolarCity", "Entity"),
+    entityNode("t1", "Alphabet Inc", { companyName: "Alphabet Inc", legalForm: "Inc", totalShares: 100000, city: "Mountain View", country: "USA" }),
+    entityNode("t2", "Google LLC", { companyName: "Google LLC", legalForm: "LLC", totalShares: 80000, city: "Mountain View", country: "USA" }),
+    entityNode("t3", "YouTube", { companyName: "YouTube LLC", legalForm: "LLC", totalShares: 50000, city: "San Bruno", country: "USA" }),
+    entityNode("t4", "Waymo", { companyName: "Waymo LLC", legalForm: "LLC", totalShares: 15000, city: "Mountain View", country: "USA" }),
+    entityNode("t5", "DeepMind", { companyName: "DeepMind", legalForm: "Ltd", totalShares: 12000, city: "London", country: "United Kingdom" }),
+    entityNode("t6", "Meta Platforms", { companyName: "Meta Platforms Inc", legalForm: "Inc", totalShares: 95000, city: "Menlo Park", country: "USA" }),
+    entityNode("t7", "Facebook", { companyName: "Facebook Inc", legalForm: "Inc", totalShares: 90000, city: "Menlo Park", country: "USA" }),
+    entityNode("t8", "Instagram", { companyName: "Instagram LLC", legalForm: "LLC", totalShares: 40000, city: "Menlo Park", country: "USA" }),
+    entityNode("t9", "WhatsApp", { companyName: "WhatsApp LLC", legalForm: "LLC", totalShares: 35000, city: "Menlo Park", country: "USA" }),
+    entityNode("t10", "Tesla Inc", { companyName: "Tesla Inc", legalForm: "Inc", totalShares: 70000, city: "Austin", country: "USA" }),
+    entityNode("t11", "SpaceX", { companyName: "SpaceX", legalForm: "Corp", totalShares: 25000, city: "Hawthorne", country: "USA" }),
+    entityNode("t12", "Starlink", { companyName: "Starlink", legalForm: "LLC", totalShares: 10000, city: "Hawthorne", country: "USA" }),
+    entityNode("t13", "The Boring Company", { companyName: "The Boring Company", legalForm: "LLC", totalShares: 5000, city: "Hawthorne", country: "USA" }),
+    entityNode("t14", "Neuralink", { companyName: "Neuralink", legalForm: "Corp", totalShares: 8000, city: "Fremont", country: "USA" }),
+    entityNode("t15", "X Corp", { companyName: "X Corp", legalForm: "Corp", totalShares: 20000, city: "San Francisco", country: "USA" }),
+    shareholderNode("t16", "Larry Page", { firstName: "Larry", lastName: "Page", age: 51, city: "Palo Alto", country: "USA" }),
+    shareholderNode("t17", "Sergey Brin", { firstName: "Sergey", lastName: "Brin", age: 50, city: "Los Altos", country: "USA" }),
+    shareholderNode("t18", "Sundar Pichai", { firstName: "Sundar", lastName: "Pichai", age: 52, city: "Mountain View", country: "USA" }),
+    shareholderNode("t19", "Mark Zuckerberg", { firstName: "Mark", lastName: "Zuckerberg", age: 40, city: "Palo Alto", country: "USA" }),
+    shareholderNode("t20", "Elon Musk", { firstName: "Elon", lastName: "Musk", age: 53, city: "Austin", country: "USA" }),
+    shareholderNode("t21", "Institutional Fund A", { firstName: "Institutional", lastName: "Fund A", age: 0, city: "New York", country: "USA" }),
+    shareholderNode("t22", "Institutional Fund B", { firstName: "Institutional", lastName: "Fund B", age: 0, city: "Boston", country: "USA" }),
+    entityNode("t23", "Verily", { companyName: "Verily Life Sciences", legalForm: "LLC", totalShares: 6000, city: "South San Francisco", country: "USA" }),
+    entityNode("t24", "Reality Labs", { companyName: "Reality Labs", legalForm: "Division", totalShares: 7000, city: "Menlo Park", country: "USA" }),
+    entityNode("t25", "SolarCity", { companyName: "SolarCity", legalForm: "Corp", totalShares: 14000, city: "San Mateo", country: "USA" }),
   ];
 
   const links: LegalEntitiesGraph["links"] = [

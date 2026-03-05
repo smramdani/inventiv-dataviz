@@ -4,31 +4,30 @@ This repo hosts **graph-drawing widgets** that work as **web components** and as
 
 ## Vision
 
-- **Generic Graph Widget**: One reusable, configurable graph engine (colors, style, distances, sizes, content, behavior) for any kind of network. Current behavior is the default; config params allow many graph styles.
-- **Legal Entities & Shareholders Graph Widget**: Specialized for corporate structures (entities, shareholders, ownership %), built on top of the Generic Graph Widget to reuse the same logic and code.
-- **Dual delivery**: Both widgets are usable as web widgets and as Power BI packaged plugins (`.pbiviz`).
+- **Generic Graph:** Reusable, configurable graph engine for any network (colors, shapes, layout, info card). Web API: `createGenericGraph(container, data, options)`.
+- **Legal Entities & Shareholders Graph:** Specialized for corporate structures (entities, shareholders, ownership %), built on the same engine. Web API: `createLegalEntitiesGraph(container, data, options)`; Power BI: `.pbiviz` package.
+- **Dual delivery:** Both widgets available as Web (script/ESM) and, for Legal Entities, as a Power BI custom visual.
 
 Full design and roadmap: **[../docs/VISION_AND_ROADMAP.md](../docs/VISION_AND_ROADMAP.md)**.
 
 ## Current widgets
 
-| Widget | Source | Description |
-|--------|--------|-------------|
-| **Legal Entities Graph** | `src/visual.ts`, `src/settings.ts`, `style/visual.less` | Graph of entities and shareholders (data from Power BI DataView); expand on click, zoom, pan, share % on edges. Demo: [demo/](../demo/) folder. |
+| Widget | Web API | Power BI | Source |
+|--------|---------|----------|--------|
+| **Generic Graph** | `createGenericGraph(container, data, options?)` | — | `src/graph/`, `src/web/index.ts` |
+| **Legal Entities Graph** | `createLegalEntitiesGraph(container, data, options?)` | ✅ `.pbiviz` | `src/visual.ts`, `src/graph/adapter.ts`, `src/web/index.ts` |
 
-## Planned structure (after refactor)
+Both share the same core: `src/graph/` (config, engine, types, adapter). Demo: [../demo/](../demo/).
 
-- **Generic Graph**
-  - Core: `src/graph/` – `config.ts`, `engine.ts`, `types.ts` (no Power BI dependency).
-  - Power BI: `src/visual-generic.ts` – uses graph engine + Format pane → config.
-  - Web: `src/web/` – API e.g. `createGenericGraph(container, data, options)`.
-- **Legal Entities Graph**
-  - Power BI: `src/visual-legal-entities.ts` – maps DataView (From, To, Shares) to generic graph + Legal-Entities config; uses same graph engine.
-  - Web: same engine + `createLegalEntitiesGraph(container, data, options)`.
+## Current structure
+
+- **Core (generic):** `src/graph/` — `config.ts`, `engine.ts`, `types.ts`, `adapter.ts` — no Power BI dependency.
+- **Web API:** `src/web/index.ts` — `createGenericGraph`, `createLegalEntitiesGraph`; builds and options (config, layoutKey, infoCardContent, etc.).
+- **Power BI – Legal Entities:** `src/visual.ts`, `src/settings.ts` — DataView → adapter → `renderGraph`; format pane and layout persistence.
 
 ## Adding a new widget
 
-1. Implement the visual (reuse `src/graph/` when applicable).
-2. Register it in the Power BI plugin entry (and in `test/entry.ts` for local testing).
-3. Add or extend `pbiviz.json` / build config if you need a separate `.pbiviz` for that widget.
-4. Document it in the main README and here.
+1. Reuse `src/graph/` (engine + config). Add mapping/adapter if needed.
+2. Add Web entry in `src/web/index.ts` and, for Power BI, a visual class + capabilities.
+3. Register in the Power BI plugin entry and in `demo/` (or test entry) for local testing.
+4. Document in the main [README](../README.md) and here.

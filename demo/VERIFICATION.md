@@ -1,52 +1,39 @@
-# Vérification de la démo
+# Demo verification
 
-## Tests E2E automatisés (exécutables par la CI ou en local)
-
-Les vérifications peuvent être lancées automatiquement :
-
-```bash
-npm run test:e2e
-```
-
-Cela build la démo, démarre le serveur sur le port 3000, lance Chromium (Playwright) et exécute :
-
-1. **Legal Entities Graph** : chargement → présence du graphe et de la toolbar (Fit) → clic sur le premier nœud → le graphe et la toolbar restent visibles, aucune erreur console.
-2. **Legal Entities (custom style)** : même scénario sur la deuxième entrée du menu.
-
-En cas d’échec, Playwright peut relancer les tests avec l’UI : `npm run test:e2e:ui`.
+Manual checks and debug tips for the demo app. **For automated tests**, see **[../tests/README.md](../tests/README.md)** — run `npm run test:e2e` from the repo root (18 E2E scenarios).
 
 ---
 
-## Logs attendus dans la console (niveau Debug)
+## Expected console logs (Debug level)
 
-Ouvre les DevTools (F12) → Console. Active « Verbose » ou « Debug » pour voir les messages `console.debug`.
+Open DevTools (F12) → Console. Enable “Verbose” or “Debug” to see `console.debug` messages.
 
-### Au chargement de « Legal Entities Graph »
+### On loading “Legal Entities Graph”
 
-1. `[Inventiv DataViz] LegalEntities render 1 nodes initial` — premier rendu, 1 nœud visible (fermé/gris).
-2. `[Inventiv DataViz] renderGraph: start 1 nodes` — le moteur démarre.
-3. `[Inventiv DataViz] scheduleLayoutChange: debounce` — peut apparaître après le premier `zoom.transform` (restauration zoom).
-4. `[Inventiv DataViz] renderGraph: done 1 nodes` — rendu terminé.
-5. (Optionnel, ~400 ms plus tard) `[Inventiv DataViz] onLayoutChange: fire` — persistance du layout déclenchée.
+1. `[Inventiv DataViz] LegalEntities render 1 nodes initial` — first render, 1 node visible (closed/grey).
+2. `[Inventiv DataViz] renderGraph: start 1 nodes` — engine starts.
+3. `[Inventiv DataViz] scheduleLayoutChange: debounce` — may appear after first `zoom.transform` (zoom restore).
+4. `[Inventiv DataViz] renderGraph: done 1 nodes` — render complete.
+5. (Optional, ~400 ms later) `[Inventiv DataViz] onLayoutChange: fire` — layout persistence triggered.
 
-### Au clic sur le nœud (ouvrir)
+### On node click (expand)
 
-1. `[Inventiv DataViz] LegalEntities render N nodes expand:<nodeId>` — re-rendu avec N nœuds (ex. 5), expansion du nœud cliqué.
+1. `[Inventiv DataViz] LegalEntities render N nodes expand:<nodeId>` — re-render with N nodes (e.g. 5), expanded node.
 2. `[Inventiv DataViz] renderGraph: start N nodes`
 3. `[Inventiv DataViz] renderGraph: done N nodes`
 
-Le graphe et les boutons + / − / Fit doivent rester visibles. Aucune erreur rouge dans la console.
+The graph and + / − / Fit buttons should remain visible. No red errors in the console.
 
-### Ce qui indique un problème
+### What indicates a problem
 
-- **Erreur** `Cannot access 'layoutChangeTimeout' before initialization` → correctif TDZ non pris en compte (rebuild nécessaire).
-- **Erreur** `persistProperties` / `undefined` → ancien code sans garde `host?.persistProperties`.
-- Le graphe disparaît au clic → vérifier qu’aucune exception n’est levée (stack trace dans la console).
+- **Error** `Cannot access 'layoutChangeTimeout' before initialization` → rebuild required.
+- **Error** `persistProperties` / `undefined` → old code without `host?.persistProperties` guard.
+- Graph disappears on click → check for exceptions (stack trace in console).
 
-## Checklist rapide
+## Quick checklist
 
-- [ ] Un seul nœud visible au chargement, **gris** (fermé).
-- [ ] Clic sur le nœud → le nœud s’ouvre (couleur « ouverte »), les voisins apparaissent.
-- [ ] Le graphe et les boutons + / − / Fit **restent visibles** après le clic.
-- [ ] Aucune erreur (rouge) dans la console.
-- [ ] Les logs `[Inventiv DataViz]` apparaissent comme ci-dessus (avec niveau Debug activé).
+- [ ] One node visible on load, **grey** (closed).
+- [ ] Click node → node opens (open color), neighbors appear.
+- [ ] Graph and + / − / Fit buttons **remain visible** after click.
+- [ ] No (red) errors in console.
+- [ ] `[Inventiv DataViz]` logs appear as above (with Debug level enabled).

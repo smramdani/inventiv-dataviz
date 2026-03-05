@@ -8,7 +8,7 @@ svg {
 }
 
 .links line {
-  pointer-events: none;
+  pointer-events: stroke; /* clickable for info card */
 }
 
 .nodes g {
@@ -37,4 +37,12 @@ svg {
 
 .zoom-toolbar button:hover {
   background: #f0f0f0;
+}
+
+/* Info card (node/link selection) – engine sets colors/size via config.infoCardStyle; fallback for contrast */
+.inventiv-info-card {
+  font-family: "Segoe UI", sans-serif;
+}
+.inventiv-info-card-close:hover {
+  color: #111827;
 }

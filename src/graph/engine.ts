@@ -6,6 +6,7 @@
 import * as d3 from "d3";
 import type { GraphData, MappedNode, MappedLink, LayoutState } from "./types";
 import type { GraphConfig, NodeShape, LinkStyleContext } from "./config";
+import { DEFAULT_INFO_CARD_STYLE } from "./config";
 
 /** Node with position (x, y, optional fixed fx, fy). */
 export type EngineNode = MappedNode & {
@@ -25,6 +26,18 @@ interface EngineLink {
   toNode: EngineNode;
   label?: string;
   weight: number;
+  id?: string;
+  attributes?: Record<string, unknown>;
+}
+
+/** Data passed when a link is selected (for info card or custom handler). */
+export interface LinkSelectionInfo {
+  fromNode: MappedNode;
+  toNode: MappedNode;
+  label?: string;
+  weight: number;
+  id?: string;
+  attributes?: Record<string, unknown>;
 }
 
 export interface GraphEngineRenderOptions {
@@ -32,6 +45,17 @@ export interface GraphEngineRenderOptions {
   openedNodeIds?: Set<string>;
   /** Called when a node is clicked (not on drag). */
   onNodeClick?: (nodeId: string) => void;
+  /** Called when a node is selected (for info card). Receives full node. */
+  onNodeSelect?: (node: MappedNode) => void;
+  /** Called when a link is selected (for info card). */
+  onLinkSelect?: (link: LinkSelectionInfo) => void;
+  /** If true, show a built-in info card popup when a node or link is selected. */
+  showInfoCard?: boolean;
+  /** Custom content for the info card by node/link. If not set, default rows (label, type, attributes) are used. */
+  infoCardContent?: {
+    getNodeRows?: (node: MappedNode) => { key: string; value: unknown }[];
+    getLinkRows?: (link: LinkSelectionInfo) => { key: string; value: unknown }[];
+  };
   /** Node id we just expanded from (for open animation). */
   expandFromNodeId?: string;
   /** Previous positions to preserve layout across re-renders. */
@@ -138,6 +162,10 @@ export function renderGraph(
   const {
     openedNodeIds = new Set(),
     onNodeClick,
+    onNodeSelect,
+    onLinkSelect,
+    showInfoCard = false,
+    infoCardContent,
     expandFromNodeId,
     lastPositions: lastPositionsOpt = new Map(),
     initialZoomTransform: initialZoomTransformOpt,
@@ -204,6 +232,8 @@ export function renderGraph(
         toNode,
         label: l.label,
         weight: typeof l.weight === "number" && Number.isFinite(l.weight) ? l.weight : 0,
+        id: l.id,
+        attributes: l.attributes,
       };
     });
 
@@ -276,6 +306,69 @@ export function renderGraph(
       .style("color", "#666")
       .style("pointer-events", "none")
       .text("Click the node to explore connections →");
+  }
+
+  const cardStyle = { ...DEFAULT_INFO_CARD_STYLE, ...config.infoCardStyle };
+  let infoCardEl: HTMLDivElement | null = null;
+  if (showInfoCard) {
+    infoCardEl = document.createElement("div");
+    infoCardEl.className = "inventiv-info-card";
+    infoCardEl.setAttribute("role", "dialog");
+    infoCardEl.setAttribute("aria-label", "Information");
+    Object.assign(infoCardEl.style, {
+      position: "absolute",
+      top: "8px",
+      left: "8px",
+      maxWidth: "320px",
+      maxHeight: "70%",
+      overflow: "auto",
+      background: cardStyle.backgroundColor,
+      border: `1px solid ${cardStyle.borderColor}`,
+      borderRadius: `${cardStyle.borderRadius}px`,
+      boxShadow: cardStyle.boxShadow,
+      padding: `${cardStyle.padding}px`,
+      fontSize: `${cardStyle.fontSize}px`,
+      zIndex: "20",
+      display: "none",
+    });
+    container.appendChild(infoCardEl);
+  }
+
+  function setInfoCardContent(title: string, rows: { key: string; value: unknown }[]) {
+    if (!infoCardEl) return;
+    const safe = (v: unknown) => (v === null || v === undefined ? "" : String(v));
+    const s = cardStyle;
+    let html = `<div class="inventiv-info-card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid ${s.headerBorderColor};padding-bottom:6px;">`;
+    html += `<strong style="font-size:${s.titleFontSize}px;color:${s.titleColor};">${escapeHtml(title)}</strong>`;
+    html += `<button type="button" class="inventiv-info-card-close" aria-label="Close" style="background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding:0 4px;color:${s.closeButtonColor};">×</button>`;
+    html += `</div>`;
+    if (rows.length > 0) {
+      html += `<table style="width:100%;border-collapse:collapse;"><tbody>`;
+      for (const r of rows) {
+        html += `<tr><td style="padding:2px 8px 2px 0;color:${s.labelColor};vertical-align:top;">${escapeHtml(r.key)}</td><td style="padding:2px 0;color:${s.valueColor};">${escapeHtml(safe(r.value))}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+    }
+    infoCardEl.innerHTML = html;
+    const closeBtn = infoCardEl.querySelector(".inventiv-info-card-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        infoCardEl!.style.display = "none";
+      });
+      (closeBtn as HTMLElement).addEventListener("mouseenter", () => {
+        (closeBtn as HTMLElement).style.color = s.closeButtonHoverColor;
+      });
+      (closeBtn as HTMLElement).addEventListener("mouseleave", () => {
+        (closeBtn as HTMLElement).style.color = s.closeButtonColor;
+      });
+    }
+    infoCardEl.style.display = "block";
+  }
+
+  function escapeHtml(s: string): string {
+    const div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
   }
 
   const svg = d3
@@ -390,7 +483,38 @@ export function renderGraph(
       config.showArrows
         ? (d, i) => (scaleArrowByWeight ? `url(#${config.arrowMarkerId}-${i})` : `url(#${config.arrowMarkerId})`)
         : null
-    );
+    )
+    .attr("pointer-events", "stroke")
+    .style("cursor", "pointer")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      const info: LinkSelectionInfo = {
+        fromNode: d.fromNode,
+        toNode: d.toNode,
+        label: d.label,
+        weight: d.weight,
+        id: d.id,
+        attributes: d.attributes,
+      };
+      onLinkSelect?.(info);
+      if (showInfoCard && infoCardEl) {
+        const title = `${d.fromNode.label ?? d.fromNode.id} → ${d.toNode.label ?? d.toNode.id}`;
+        const rows =
+          infoCardContent?.getLinkRows?.(info) ??
+          (() => {
+            const out: { key: string; value: unknown }[] = [];
+            if (d.label != null) out.push({ key: "Label", value: d.label });
+            out.push({ key: "Weight", value: d.weight });
+            if (d.attributes && typeof d.attributes === "object") {
+              for (const [k, v] of Object.entries(d.attributes)) {
+                if (v !== undefined && v !== null) out.push({ key: k, value: v });
+              }
+            }
+            return out;
+          })();
+        setInfoCardContent(title, rows);
+      }
+    });
 
   const linkLabelSel = linkGroup
     .selectAll<SVGGElement, EngineLink>("g.link-label")
@@ -455,6 +579,23 @@ export function renderGraph(
     .on("click", (event, d) => {
       if (justDragged) return;
       onNodeClick?.(d.id);
+      onNodeSelect?.(d);
+      if (showInfoCard && infoCardEl) {
+        const rows =
+          infoCardContent?.getNodeRows?.(d) ??
+          (() => {
+            const out: { key: string; value: unknown }[] = [];
+            if (d.label != null && d.label !== d.id) out.push({ key: "Label", value: d.label });
+            if (d.type) out.push({ key: "Type", value: d.type });
+            if (d.attributes && typeof d.attributes === "object") {
+              for (const [k, v] of Object.entries(d.attributes)) {
+                if (v !== undefined && v !== null) out.push({ key: k, value: v });
+              }
+            }
+            return out;
+          })();
+        setInfoCardContent(d.label ?? d.id, rows);
+      }
     });
 
   // Append shape per node (circle, rect, roundedRect, triangle) from config.nodeShapeByType / nodeShapeDefault
@@ -707,6 +848,7 @@ export function renderGraph(
   if (typeof console !== "undefined" && console.debug) console.debug("[Inventiv DataViz] renderGraph: done", engineNodes.length, "nodes");
   return {
     destroy() {
+      infoCardEl?.remove();
       svg.remove();
       toolbarDiv?.remove();
     },

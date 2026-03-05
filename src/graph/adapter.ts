@@ -5,18 +5,21 @@
 
 import type { GraphData, MappedNode, MappedLink } from "./types";
 
-/** Legal Entities node shape (id, label, type Entity | Shareholder). */
+/** Legal Entities node shape (id, label, type Entity | Shareholder). Optional attributes for info card (e.g. First Name, Company Name, City). */
 export interface LegalEntitiesNode {
   id: string;
   label: string;
   type: "Entity" | "Shareholder";
+  /** Custom fields for the info card: e.g. Personnes Physiques (firstName, lastName, age, city, country), Personnes Morales (companyName, legalForm, totalShares, city, country). */
+  attributes?: Record<string, unknown>;
 }
 
-/** Legal Entities link shape (source, target, shares). */
+/** Legal Entities link shape (source, target, shares). Optional attributes for info card. */
 export interface LegalEntitiesLink {
   source: string;
   target: string;
   shares: number;
+  attributes?: Record<string, unknown>;
 }
 
 /** Input format for createLegalEntitiesGraph: nodes and links with shares. */
@@ -34,11 +37,13 @@ export function legalEntitiesToGraphData(graph: LegalEntitiesGraph): GraphData {
     id: n.id,
     label: n.label,
     type: n.type,
+    ...(n.attributes && Object.keys(n.attributes).length > 0 && { attributes: n.attributes }),
   }));
   const links = graph.links.map((l) => ({
     source: l.source,
     target: l.target,
     weight: l.shares,
+    ...(l.attributes && Object.keys(l.attributes).length > 0 && { attributes: l.attributes }),
   }));
   return { nodes, links };
 }
@@ -68,6 +73,7 @@ export function buildLegalEntitiesGraphData(
     id: n.id,
     label: n.label,
     type: n.type,
+    ...(n.attributes && Object.keys(n.attributes).length > 0 && { attributes: n.attributes }),
   }));
 
   const links = visibleLinks.map((l) => {
@@ -87,6 +93,7 @@ export function buildLegalEntitiesGraphData(
       weight: sharePct,
       label: `${sharePct.toFixed(0)}%`,
       arrowAt: arrowAt as "source" | "target",
+      ...(l.attributes && Object.keys(l.attributes).length > 0 && { attributes: l.attributes }),
     };
   });
 

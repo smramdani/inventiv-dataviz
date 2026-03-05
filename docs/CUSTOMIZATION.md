@@ -2,7 +2,7 @@
 
 You can customize the look and behaviour of both **Generic Graph** and **Legal Entities Graph** by passing a **`config`** object (partial: only the options you want to override). This page documents every configurable parameter and gives code examples.
 
-**What you can configure:** node **shapes** (circle, rect, roundedRect, triangle), **colors** (nodes, links, arrows, labels, label boxes), **sizes and distances** (node radius, link/arrow thickness, font sizes, label offset, zoom), **auto layout** (bouton « Organiser » : distance entre nœuds, répulsion, collision), and **visibility** (arrows, link labels). See the [full config reference](#6-full-config-reference-quick-table) and the [code examples](#7-complete-code-examples) at the end.
+**What you can configure:** node **shapes** (circle, rect, roundedRect, triangle), **colors** (nodes, links, arrows, labels), **sizes and distances** (node radius, link/arrow thickness, font sizes), **auto layout** (Organiser button: link distance, charge, collision), **visibility** (arrows, link labels), and **info card** (style and content by node/link type). See the [full config reference](#6-full-config-reference-quick-table) and the [code examples](#7-complete-code-examples) at the end.
 
 ---
 
@@ -263,6 +263,7 @@ config: {
 | **Visibility** | `showArrows`, `showLinkLabel` |
 | **Layout/zoom** | `placeNewNodesRadius`, `zoomExtent`, `fixNodesAfterExpand` |
 | **Organiser (auto layout)** | `linkDistance`, `linkStrength`, `chargeStrength`, `chargeDistanceMax`, `chargeDistanceMin`, `collisionRadiusPadding`, `centerStrength` |
+| **Info card** | `infoCardStyle` (optional: backgroundColor, borderColor, titleColor, labelColor, valueColor, etc.) — see §8.2 |
 
 ---
 
@@ -354,7 +355,65 @@ config: {
 
 ---
 
-## 8. Other parameters you might need
+## 8. Info card (node and link selection)
+
+When you **click a node** or **click a link (edge)**, a small **info card** can pop up to show details. This works in **Web** and **Power BI**. The **default style** uses dark text on a light background (title and values `#111827`, labels `#4b5563`) for good readability.
+
+- **Node card:** title = node label; rows = Label, Type, then all `node.attributes`.
+- **Link card:** title = From → To; rows = Label, Weight, then all `link.attributes`.
+
+**Web:** The info card is **on by default**. To disable it, pass `showInfoCard: false` in options:
+
+```js
+InventivDataviz.createGenericGraph(container, data, { showInfoCard: false });
+InventivDataviz.createLegalEntitiesGraph(container, data, { showInfoCard: false });
+```
+
+**Custom data for the card:** Use **nodes** with an `attributes` object and **links** with an `attributes` object. Those key-value pairs are shown in the card. Example (Generic Graph with rows, or nodes+links):
+
+```js
+// Example: nodes with extra fields for the info card
+createGenericGraph(container, {
+  nodes: [
+    { id: "1", label: "Company A", type: "Entity", attributes: { country: "FR", sector: "Tech" } },
+    { id: "2", label: "Owner", type: "Shareholder", attributes: { role: "CEO" } },
+  ],
+  links: [
+    { source: "2", target: "1", weight: 100, attributes: { since: "2020" } },
+  ],
+});
+```
+
+In **Legal Entities** graphs, nodes already have `label` and `type`; links have weight (shares). You can extend your data model with `attributes` on nodes/links if your mapping or adapter exposes them.
+
+**Power BI:** The same info card and default style apply when a node or link is selected.
+
+### 8.2 Customising the card style (config.infoCardStyle)
+
+Override the card look via **`config.infoCardStyle`**. All keys are optional. Main properties: `backgroundColor`, `borderColor`, `titleColor`, `labelColor`, `valueColor`, `titleFontSize`, `fontSize`, `padding`, `borderRadius`, `boxShadow`, `headerBorderColor`, `closeButtonColor`, `closeButtonHoverColor`. Defaults use white background and dark grey/black text. Example dark card:
+
+```js
+config: {
+  infoCardStyle: {
+    backgroundColor: "#1f2937",
+    borderColor: "#374151",
+    titleColor: "#f9fafb",
+    labelColor: "#d1d5db",
+    valueColor: "#f9fafb",
+    headerBorderColor: "#4b5563",
+    closeButtonColor: "#9ca3af",
+    closeButtonHoverColor: "#fff",
+  },
+}
+```
+
+### 8.3 Customising card content by type (getNodeRows / getLinkRows)
+
+To choose which fields appear and in which order (e.g. different rows for Entity vs Shareholder), pass **`infoCardContent`** in the options passed to the engine (not in `config`): **`getNodeRows(node)`** and **`getLinkRows(link)`**. Each returns an array of `{ key: string, value: unknown }`. If omitted, the default (Label, Type/Weight, then all attributes) is used. This allows mapping fields and ordering by node/link type; the Web API can expose this in options when calling the engine.
+
+---
+
+## 9. Other parameters you might need
 
 - **Layout persistence:** use `layoutKey` in options (not in `config`) so the graph’s layout is saved and restored. See [LAYOUT_PERSISTENCE_PLAN.md](LAYOUT_PERSISTENCE_PLAN.md).
 - **Mapping:** for row-based data with types or link labels, use `mapping` (e.g. `createRowBasedMapping({ sourceTypeField, targetTypeField, linkLabelField })`). See [DATA_MAPPING.md](DATA_MAPPING.md).
@@ -368,5 +427,6 @@ The sections above cover all parameters that currently affect rendering and beha
 - **Sizes/distances:** `nodeRadiusDefault`, `nodeRadiusByType`, `linkStrokeWidthMin/Max`, `arrowMarkerSizeMin/Max`, `weightToSizeCurve`, `nodeLabelOffset`, `labelFontSizeSmall/Large`, `linkLabelFontSize`, `linkLabelOffset`, `placeNewNodesRadius`, `zoomExtent`.
 - **Organiser (auto layout):** `linkDistance`, `linkStrength`, `chargeStrength`, `chargeDistanceMax`, `chargeDistanceMin`, `collisionRadiusPadding`, `centerStrength` — utilisés par le bouton « Organiser ».
 - **Visibility:** `showArrows`, `showLinkLabel`, `fixNodesAfterExpand`.
+- **Info card:** In options: `showInfoCard` (default true), `infoCardContent` (optional `getNodeRows` / `getLinkRows` for custom content by type). In config: `infoCardStyle` (colors, fonts, padding, etc.). Default style uses dark text on light background for readability.
 
 If you need a parameter that is not in this list (e.g. another shape such as diamond or hexagon, or a different label position), you can open an issue or contact the project team; the config and engine can be extended.

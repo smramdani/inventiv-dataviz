@@ -90,6 +90,13 @@ export interface GenericGraphOptions {
   initialLayoutState?: LayoutState;
   /** Called when layout changes (debounced). Use for custom persistence. */
   onLayoutChange?: (state: LayoutState) => void;
+  /** Show an info card popup when a node or link is selected (default true). */
+  showInfoCard?: boolean;
+  /** Custom content for the info card (rows by node/link type). See docs/CUSTOMIZATION.md. */
+  infoCardContent?: {
+    getNodeRows?: (node: import("../graph").MappedNode) => { key: string; value: unknown }[];
+    getLinkRows?: (link: import("../graph").LinkSelectionInfo) => { key: string; value: unknown }[];
+  };
 }
 
 /**
@@ -117,9 +124,12 @@ export function createGenericGraph(
     if (options.layoutKey) saveLayoutToStorage(LAYOUT_STORAGE_PREFIX + options.layoutKey, state);
     options.onLayoutChange?.(state);
   };
+  const showInfoCard = options.showInfoCard !== false;
   let handle = renderGraph(container, graphData, config, {
     initialLayoutState: initialLayout,
     onLayoutChange: persistLayout,
+    showInfoCard,
+    infoCardContent: options.infoCardContent,
   });
 
   return {
@@ -145,6 +155,8 @@ export function createGenericGraph(
         lastPositions,
         initialZoomTransform: lastZoom,
         onLayoutChange: persistLayout,
+        showInfoCard,
+        infoCardContent: options.infoCardContent,
       });
     },
     updateOptions(opts: GenericGraphOptions) {
@@ -172,6 +184,13 @@ export interface LegalEntitiesGraphOptions {
   initialLayoutState?: LayoutState;
   /** Called when layout changes (debounced). */
   onLayoutChange?: (state: LayoutState) => void;
+  /** Show an info card popup when a node or link is selected (default true). */
+  showInfoCard?: boolean;
+  /** Custom content for the info card (rows by node/link type). See docs/CUSTOMIZATION.md. */
+  infoCardContent?: {
+    getNodeRows?: (node: import("../graph").MappedNode) => { key: string; value: unknown }[];
+    getLinkRows?: (link: import("../graph").LinkSelectionInfo) => { key: string; value: unknown }[];
+  };
 }
 
 /**
@@ -234,10 +253,11 @@ export function createLegalEntitiesGraph(
   }
 
   function openNode(nodeId: string) {
+    const prevSize = visibleNodeIds.size;
     openedNodeIds.add(nodeId);
     getNeighborIds(nodeId).forEach((id) => visibleNodeIds.add(id));
     visibleNodeIds.add(nodeId);
-    render(nodeId);
+    if (visibleNodeIds.size > prevSize) render(nodeId);
   }
 
   function openAll() {
@@ -254,6 +274,7 @@ export function createLegalEntitiesGraph(
     render();
   }
 
+  const showInfoCard = options.showInfoCard !== false;
   let engineHandle: ReturnType<typeof renderGraph> | null = (() => {
     const graphData = buildLegalEntitiesGraphData(data, visibleNodeIds);
     if (graphData.nodes.length === 0) return null;
@@ -264,6 +285,8 @@ export function createLegalEntitiesGraph(
       onCloseAll: closeAll,
       initialLayoutState: initialLayout,
       onLayoutChange: persistLayout,
+      showInfoCard,
+      infoCardContent: options.infoCardContent,
     });
   })();
 
@@ -289,6 +312,8 @@ export function createLegalEntitiesGraph(
       lastPositions,
       initialZoomTransform: lastZoomTransform,
       onLayoutChange: persistLayout,
+      showInfoCard,
+      infoCardContent: options.infoCardContent,
     });
   }
 

@@ -23,16 +23,10 @@ npm run demo        # Serve the demo at http://localhost:3000
 Then open **http://localhost:3000** in your browser.
 
 You can also open `demo/index.html` directly in a browser after running `npm run build:demo`, but some features work best when the page is served over HTTP (e.g. to avoid CORS with file://).
+## Publishing the demo online
 
-## GitHub Pages
+See the main [README – Publish the demo online](../README.md#publish-the-demo-online-one-time-setup). The project uses a GitHub Actions workflow to build and deploy to GitHub Pages.
 
-To publish the demo so it’s visible from the GitHub repo page:
-
-1. In the repo: **Settings → Pages**.
-2. Under “Build and deployment”, set **Source** to “Deploy from a branch”.
-3. Choose a branch (e.g. `main`) and set the folder to **`/ (root)`** or to a folder that contains the built demo (e.g. copy `demo/` contents including `dist/` to `docs/` and set “Deploy from branch” → `docs/`).
-
-Alternatively, use a GitHub Actions workflow that runs `npm run build:demo` and deploys the `demo/` folder (including `demo/dist/`) to the `gh-pages` branch. The site will be available at `https://<org>.github.io/<repo>/`.
 
 ## Back to main docs
 

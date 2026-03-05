@@ -208,6 +208,7 @@ export class Visual implements IVisual {
       onNodeClick: (id) => this.openNode(id),
       onOpenAll: () => this.openAll(),
       onCloseAll: () => this.closeAll(),
+      showInfoCard: true,
       expandFromNodeId,
       lastPositions: this.lastPositions,
       initialZoomTransform: this.lastZoomTransform,

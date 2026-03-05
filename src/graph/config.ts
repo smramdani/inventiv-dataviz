@@ -107,7 +107,43 @@ export interface GraphConfig {
   zoomExtent: [number, number];
   /** Fix node positions after expand so they don't drift (default true). */
   fixNodesAfterExpand: boolean;
+  /** Info card popup style (when showInfoCard). Override for custom look. */
+  infoCardStyle?: Partial<InfoCardStyle>;
 }
+
+/** Style options for the info card (node/link selection popup). Defaults are readable (dark text on light background). */
+export interface InfoCardStyle {
+  backgroundColor: string;
+  borderColor: string;
+  borderRadius: number;
+  boxShadow: string;
+  padding: number;
+  fontSize: number;
+  titleColor: string;
+  titleFontSize: number;
+  labelColor: string;
+  valueColor: string;
+  headerBorderColor: string;
+  closeButtonColor: string;
+  closeButtonHoverColor: string;
+}
+
+/** Default info card style: professional, modern, good contrast. */
+export const DEFAULT_INFO_CARD_STYLE: InfoCardStyle = {
+  backgroundColor: "#ffffff",
+  borderColor: "#e5e7eb",
+  borderRadius: 8,
+  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+  padding: 14,
+  fontSize: 13,
+  titleColor: "#111827",
+  titleFontSize: 14,
+  labelColor: "#4b5563",
+  valueColor: "#111827",
+  headerBorderColor: "#e5e7eb",
+  closeButtonColor: "#6b7280",
+  closeButtonHoverColor: "#111827",
+};
 
 function linkStrokeWidthFromWeight(weight: number): number {
   return Math.min(4, 1 + (weight || 0) / 2000);

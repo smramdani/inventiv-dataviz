@@ -37,12 +37,13 @@ export {
   type LegalEntitiesLink,
 } from "./adapter";
 
-export type { GraphConfig, NodeShape, LinkStyleContext } from "./config";
-export { DEFAULT_GRAPH_CONFIG, DEFAULT_GENERIC_GRAPH_CONFIG } from "./config";
+export type { GraphConfig, NodeShape, LinkStyleContext, InfoCardStyle } from "./config";
+export { DEFAULT_GRAPH_CONFIG, DEFAULT_GENERIC_GRAPH_CONFIG, DEFAULT_INFO_CARD_STYLE } from "./config";
 
 export {
   renderGraph,
   type GraphEngineHandle,
   type GraphEngineRenderOptions,
   type EngineNode,
+  type LinkSelectionInfo,
 } from "./engine";
