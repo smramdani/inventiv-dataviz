@@ -8,13 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+_Nothing yet._
+
+---
+
+## [0.0.12] - 2026-03-07
+
 ### Added
 
-- **Demo header**: release version (e.g. v0.0.11) shown next to "Inventiv DataViz", injected from `package.json` at build time.
+- **Demo header**: release version (e.g. v0.0.12) shown next to "Inventiv DataViz", injected from `package.json` at build time.
 
 ### Changed
 
 - **LICENSE**: full GNU AGPL v3 license text included; contact and source code for the program point to the GitHub repository (Issues or Discussions), without requiring an email address.
+
+### Fixed
+
+- **CI**: GitHub Pages deployment — add `environment: github-pages` and bump `upload-pages-artifact` to v4 so the deploy workflow runs correctly.
 
 ---
 
@@ -174,7 +184,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.11...HEAD
+[Unreleased]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.12...HEAD
+[0.0.12]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.9...v0.0.10
 [0.0.9]: https://github.com/smramdani/inventiv-dataviz/compare/v0.0.8...v0.0.9
