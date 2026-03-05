@@ -58,9 +58,9 @@ This checklist implements the recommendations from [OPEN_SOURCE_EXPERT_RECOMMEND
 
 **Goal:** Clear versioning, release notes, and downloadable artifacts.
 
-- [ ] **4.1** Create **CHANGELOG.md** at repository root (e.g. [Keep a Changelog](https://keepachangelog.com/) format):
-  - [ ] Sections: Added, Changed, Fixed, Security.
-  - [ ] Backfill last release (e.g. v0.0.10) with recent changes; then maintain for every release.
+- [x] **4.1** Create **CHANGELOG.md** at repository root (e.g. [Keep a Changelog](https://keepachangelog.com/) format):
+  - [x] Sections: Added, Changed, Fixed, Security.
+  - [x] Backfill last release (e.g. v0.0.10) with recent changes; then maintain for every release.
 - [ ] **4.2** Document **versioning policy** in README or docs (e.g. SemVer: MAJOR.MINOR.PATCH; breaking → MAJOR, new features → MINOR, fixes → PATCH).
 - [ ] **4.3** Use **GitHub Releases** for the current version:
   - [ ] Create tag `v0.0.10` (or next), create Release with copy-paste from CHANGELOG.

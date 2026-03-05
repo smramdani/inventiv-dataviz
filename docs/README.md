@@ -16,6 +16,8 @@ Central index for project documentation. Start with [GETTING_STARTED.md](GETTING
 | **[OPEN_SOURCE_EXPERT_RECOMMENDATIONS.md](OPEN_SOURCE_EXPERT_RECOMMENDATIONS.md)** | Expert analysis and recommendations for making the project a trusted, professional open-source project (contributing, security, releases, discoverability). |
 | **[OPEN_SOURCE_IMPLEMENTATION_TODO.md](OPEN_SOURCE_IMPLEMENTATION_TODO.md)** | Structured TODO list for implementing the open-source recommendations (phases 1–8). |
 
+**At repository root:** [../CHANGELOG.md](../CHANGELOG.md) — version history (Keep a Changelog format).
+
 ---
 
 ## Other references

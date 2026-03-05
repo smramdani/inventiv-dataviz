@@ -226,4 +226,5 @@ See **[docs/README.md](docs/README.md)** for the full documentation index.
 | **Data mapping** | [DATA_MAPPING.md](docs/DATA_MAPPING.md) — row-based vs nodes+links, fields, attributes |
 | **Layout persistence** | [LAYOUT_PERSISTENCE_PLAN.md](docs/LAYOUT_PERSISTENCE_PLAN.md) — save/restore positions and zoom |
 | **Vision & roadmap** | [VISION_AND_ROADMAP.md](docs/VISION_AND_ROADMAP.md) — design and roadmap |
+| **Changelog** | [CHANGELOG.md](CHANGELOG.md) — version history (Added, Changed, Fixed) |
 | **Automated tests** | [tests/README.md](tests/README.md) — E2E Playwright (18 scenarios) |
