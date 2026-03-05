@@ -11,6 +11,7 @@ const fs = require("fs");
 const projectRoot = path.join(__dirname, "..");
 const outDir = path.join(projectRoot, "demo", "dist");
 const entry = path.join(projectRoot, "demo", "entry.ts");
+const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, "package.json"), "utf8"));
 
 const lessPlugin = {
   name: "less-stub",
@@ -41,7 +42,10 @@ esbuild
     target: ["es2020"],
     sourcemap: true,
     plugins: [lessPlugin],
-    define: { "process.env.NODE_ENV": '"development"' },
+    define: {
+      "process.env.NODE_ENV": '"development"',
+      "INVENTIV_DATAVIZ_VERSION": JSON.stringify(pkg.version),
+    },
     loader: { ".json": "json" },
   })
   .then(() => {

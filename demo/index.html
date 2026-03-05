@@ -59,6 +59,11 @@
       padding: 0.25rem 0.5rem;
       border-radius: 6px;
     }
+    .app-header .version {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--inv-text-muted);
+    }
     .app-header .tagline {
       margin-right: 0.5rem;
       font-size: 0.85rem;
@@ -165,6 +170,7 @@
 <body>
   <header class="app-header">
     <span class="logo">Inventiv DataViz</span>
+    <span class="version" id="app-version"></span>
     <span class="badge">Demo</span>
     <span class="tagline">Graph widgets for Web & Power BI</span>
     <a href="https://github.com/smramdani/inventiv-dataviz" target="_blank" rel="noopener noreferrer" class="repo-link" title="Voir le README du dépôt">README / Repo</a>
@@ -346,7 +352,12 @@
       var script = document.createElement('script');
       script.src = basePath + 'dist/visual.js';
       script.async = false;
-      script.onload = function() { runDemo('legal-entities'); };
+      script.onload = function() {
+        var v = window.__inventivDatavizVersion;
+        var el = document.getElementById('app-version');
+        if (el && v) el.textContent = 'v' + v;
+        runDemo('legal-entities');
+      };
       script.onerror = function() {
         showError('Could not load dist/visual.js (tried: ' + script.src + '). Run: npm run build:demo then deploy, or use npm run demo locally.');
       };

@@ -3,6 +3,9 @@
  * Registers widgets and injects demo data. Used only by the demo app (see demo/README.md).
  */
 
+/** Injected at build time from package.json version. */
+declare const INVENTIV_DATAVIZ_VERSION: string;
+
 import powerbi from "powerbi-visuals-api";
 import { Visual as LegalEntitiesGraphVisual } from "../src/visual";
 import { GenericGraphVisual } from "../src/visual-generic";
@@ -15,6 +18,8 @@ import type { GraphConfig } from "../src/graph";
 (window as any).powerbi = powerbi;
 (window as any).powerbi.visuals = (window as any).powerbi.visuals || {};
 (window as any).powerbi.visuals.plugins = (window as any).powerbi.visuals.plugins || {};
+(window as any).__inventivDatavizVersion =
+  typeof INVENTIV_DATAVIZ_VERSION !== "undefined" ? INVENTIV_DATAVIZ_VERSION : "";
 
 // Legal Entities: default = tech companies (~30 nodes); anonymized small graph also available
 const legalGraphTech = getFakeGraphTechCompanies();
